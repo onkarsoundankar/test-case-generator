@@ -22,12 +22,19 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from retriever import retrieve_similar_stories
 from generator import generate_test_cases, generate_test_cases_mock, build_user_prompt, SYSTEM_PROMPT
+import build_index as build_index_module
 
 load_dotenv()
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
 
 st.set_page_config(page_title="AI Test Case Generator", page_icon="🧪", layout="wide")
+
+# Build the vector index automatically if it doesn't exist yet (e.g. first time
+# this app runs on a fresh cloud deployment, where nobody ran build_index.py by hand).
+if not os.path.exists(build_index_module.INDEX_PATH):
+    with st.spinner("First-time setup: building the search index..."):
+        build_index_module.build_index()
 
 st.title("🧪 AI-Powered Test Case Generator")
 st.caption("RAG pipeline: retrieves similar past stories, then generates BDD/Gherkin test cases.")
@@ -40,14 +47,13 @@ with st.sidebar:
     if has_api_key:
         mode = st.radio(
             "Generation mode",
-            ["Real AI (uses API credits)", "Free mock (no API call)", "Show prompt only (paste into claude.ai)"],
+            ["AI Generate", "Quick Generate", "Copy Prompt for Claude.ai"],
             index=0,
         )
     else:
-        st.info("No ANTHROPIC_API_KEY found in .env — real AI generation is disabled.")
         mode = st.radio(
             "Generation mode",
-            ["Free mock (no API call)", "Show prompt only (paste into claude.ai)"],
+            ["Quick Generate", "Copy Prompt for Claude.ai"],
             index=0,
         )
 
@@ -87,14 +93,14 @@ if generate_clicked:
 
         st.subheader("3. Generated test cases")
 
-        if mode == "Show prompt only (paste into claude.ai)":
+        if mode == "Copy Prompt for Claude.ai":
             prompt = build_user_prompt(story_text, acceptance_criteria, similar, test_types)
             full_prompt = SYSTEM_PROMPT + "\n\n" + prompt
             st.info("Copy the box below, paste it into https://claude.ai, then paste the reply back here manually.")
             st.code(full_prompt, language="text")
 
-        elif mode == "Free mock (no API call)":
-            with st.spinner("Generating mock test cases..."):
+        elif mode == "Quick Generate":
+            with st.spinner("Generating test cases..."):
                 result = generate_test_cases_mock(story_text, acceptance_criteria, similar, test_types)
             st.code(result, language="gherkin")
 
@@ -106,7 +112,7 @@ if generate_clicked:
             st.success(f"Saved to: {output_path}")
             st.download_button("Download .feature file", result, file_name=f"test_cases_{timestamp}.feature")
 
-        else:  # Real AI
+        else:  # AI Generate
             with st.spinner("Calling Claude..."):
                 try:
                     result = generate_test_cases(story_text, acceptance_criteria, similar, test_types)
