@@ -1,0 +1,98 @@
+[
+  {
+    "id": "STORY-101",
+    "title": "User login with email and password",
+    "story": "As a registered user, I want to log in using my email and password so that I can access my account.",
+    "acceptance_criteria": [
+      "User can log in with valid email and password",
+      "User sees an error for invalid credentials",
+      "Account locks after 5 failed attempts",
+      "Password field masks input"
+    ],
+    "test_cases": [
+      "Scenario: Successful login with valid credentials\n  Given a registered user with valid credentials\n  When the user enters the correct email and password\n  And clicks the login button\n  Then the user is redirected to the dashboard",
+      "Scenario: Login fails with incorrect password\n  Given a registered user\n  When the user enters a valid email and an incorrect password\n  Then an error message \"Invalid email or password\" is displayed",
+      "Scenario: Account locks after repeated failed attempts\n  Given a registered user\n  When the user enters incorrect credentials 5 times in a row\n  Then the account is locked\n  And the user sees a message indicating the account is locked"
+    ]
+  },
+  {
+    "id": "STORY-102",
+    "title": "Password reset via email",
+    "story": "As a user who forgot my password, I want to reset it via an emailed link so that I can regain access to my account.",
+    "acceptance_criteria": [
+      "User can request a reset link via email",
+      "Reset link expires after 30 minutes",
+      "New password must meet complexity rules",
+      "User is notified after successful reset"
+    ],
+    "test_cases": [
+      "Scenario: Successful password reset request\n  Given a user with a registered email\n  When the user requests a password reset\n  Then a reset link is sent to their email",
+      "Scenario: Expired reset link is rejected\n  Given a user has an expired password reset link\n  When the user clicks the link\n  Then an error message indicating the link has expired is shown",
+      "Scenario: New password fails complexity rules\n  Given a user is on the reset password page\n  When the user submits a password shorter than 8 characters\n  Then an error is shown indicating password requirements were not met"
+    ]
+  },
+  {
+    "id": "STORY-103",
+    "title": "Add item to shopping cart",
+    "story": "As a shopper, I want to add products to my cart so that I can purchase multiple items at once.",
+    "acceptance_criteria": [
+      "User can add an in-stock item to the cart",
+      "Cart quantity updates in real time",
+      "Out-of-stock items cannot be added",
+      "Cart persists across sessions for logged-in users"
+    ],
+    "test_cases": [
+      "Scenario: Add in-stock item to cart\n  Given a product is in stock\n  When the user clicks \"Add to Cart\"\n  Then the item appears in the cart with quantity 1",
+      "Scenario: Attempt to add out-of-stock item\n  Given a product is out of stock\n  When the user views the product page\n  Then the \"Add to Cart\" button is disabled",
+      "Scenario: Cart persists after logout and login\n  Given a logged-in user has items in their cart\n  When the user logs out and logs back in\n  Then the cart still contains the previously added items"
+    ]
+  },
+  {
+    "id": "STORY-104",
+    "title": "Apply discount coupon at checkout",
+    "story": "As a shopper, I want to apply a discount coupon at checkout so that I can get a reduced price on my order.",
+    "acceptance_criteria": [
+      "Valid coupon reduces order total correctly",
+      "Expired or invalid coupons are rejected with a clear message",
+      "Only one coupon can be applied per order",
+      "Coupon discount is reflected in the order summary"
+    ],
+    "test_cases": [
+      "Scenario: Apply valid coupon\n  Given a shopper has items in their cart\n  When they enter a valid, active coupon code\n  Then the order total is reduced by the coupon amount",
+      "Scenario: Reject expired coupon\n  Given a shopper enters an expired coupon code\n  When they apply the coupon\n  Then an error message \"Coupon expired\" is displayed and total remains unchanged",
+      "Scenario: Prevent stacking multiple coupons\n  Given a shopper has already applied one valid coupon\n  When they try to apply a second coupon\n  Then the system rejects the second coupon with a message explaining only one coupon is allowed"
+    ]
+  },
+  {
+    "id": "STORY-105",
+    "title": "Upload profile picture",
+    "story": "As a user, I want to upload a profile picture so that my account feels personalized.",
+    "acceptance_criteria": [
+      "Supports JPG and PNG formats",
+      "Max file size is 5MB",
+      "Image is resized/cropped to a square thumbnail",
+      "User sees a preview before saving"
+    ],
+    "test_cases": [
+      "Scenario: Successful profile picture upload\n  Given a user selects a valid JPG image under 5MB\n  When they upload the image\n  Then the image is saved and displayed as their profile picture",
+      "Scenario: Reject unsupported file format\n  Given a user selects a .gif file\n  When they attempt to upload it\n  Then an error message indicating unsupported format is shown",
+      "Scenario: Reject file exceeding size limit\n  Given a user selects an image larger than 5MB\n  When they attempt to upload it\n  Then an error message indicating the file is too large is shown"
+    ]
+  },
+  {
+    "id": "STORY-106",
+    "title": "Search products by keyword",
+    "story": "As a shopper, I want to search for products by keyword so that I can quickly find what I'm looking for.",
+    "acceptance_criteria": [
+      "Search returns relevant results ranked by relevance",
+      "Search handles typos with suggestions",
+      "Empty search shows a helpful message",
+      "Results can be filtered by category and price"
+    ],
+    "test_cases": [
+      "Scenario: Search returns relevant results\n  Given products exist matching a keyword\n  When the user searches for that keyword\n  Then matching products are displayed ranked by relevance",
+      "Scenario: Search with no results\n  Given no products match the search keyword\n  When the user searches\n  Then a message \"No products found\" is displayed with suggestions",
+      "Scenario: Filter search results by price range\n  Given a user has searched for a keyword\n  When they apply a price filter\n  Then only results within that price range are shown"
+    ]
+  }
+]
