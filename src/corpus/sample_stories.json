@@ -4,11 +4,30 @@
     "title": "User login with email and password",
     "story": "As a registered user, I want to log in using my email and password so that I can access my account.",
     "acceptance_criteria": [
-      "User can log in with valid email and password",
-      "User sees an error for invalid credentials",
-      "Account locks after 5 failed attempts",
-      "Password field masks input"
-    ],
+     "Scenario: Successful login with valid credentials\n  Given a registered user with valid credentials\n  When the user enters the correct email and password\n  And clicks the login button\n  Then the user is redirected to the dashboard",
+
+    "Scenario: Login fails with incorrect password\n  Given a registered user\n  When the user enters a valid email and an incorrect password\n  Then an error message \"Invalid email or password\" is displayed",
+
+    "Scenario: Login fails with incorrect email\n  Given a registered user\n  When the user enters an invalid email and a valid password\n  Then an error message \"Invalid email or password\" is displayed",
+
+    "Scenario: Login fails with invalid email and password\n  Given a registered user\n  When the user enters an invalid email and an invalid password\n  Then an error message \"Invalid email or password\" is displayed",
+
+    "Scenario: Login with blank email\n  Given the login page is displayed\n  When the user leaves the email field blank and enters a valid password\n  Then a validation message for the email field is displayed",
+
+    "Scenario: Login with blank password\n  Given the login page is displayed\n  When the user enters a valid email and leaves the password blank\n  Then a validation message for the password field is displayed",
+
+    "Scenario: Login with blank email and password\n  Given the login page is displayed\n  When the user leaves both fields blank\n  Then validation messages are displayed for both fields",
+
+    "Scenario: Account locks after five failed attempts\n  Given a registered user\n  When the user enters invalid credentials five consecutive times\n  Then the account is locked\n  And the user is informed that the account is locked",
+
+    "Scenario: Login attempt after account is locked\n  Given the user's account is locked\n  When the user enters valid credentials\n  Then login is denied\n  And an account locked message is displayed",
+
+    "Scenario: Password field masks entered characters\n  Given the login page is displayed\n  When the user types a password\n  Then the password characters are masked",
+
+    "Scenario: SQL injection attempt in email field\n  Given the login page is displayed\n  When the user enters \"' OR '1'='1\" as the email\n  And enters any password\n  Then login is denied\n  And the application safely rejects the malicious input",
+
+    "Scenario: Cross-site scripting attempt in email field\n  Given the login page is displayed\n  When the user enters \"<script>alert('XSS')</script>\" in the email field\n  Then the application sanitizes the input\n  And login is denied"
+  ],
     "test_cases": [
       "Scenario: Successful login with valid credentials\n  Given a registered user with valid credentials\n  When the user enters the correct email and password\n  And clicks the login button\n  Then the user is redirected to the dashboard",
       "Scenario: Login fails with incorrect password\n  Given a registered user\n  When the user enters a valid email and an incorrect password\n  Then an error message \"Invalid email or password\" is displayed",
