@@ -9,13 +9,14 @@ Run:
 
 import json
 import os
+import shutil
 
 import chromadb
 from chromadb.utils import embedding_functions
 
-# ----------------------------
+# --------------------------------------------------
 # Paths
-# ----------------------------
+# --------------------------------------------------
 
 CORPUS_PATH = os.path.join(
     os.path.dirname(__file__),
@@ -29,9 +30,18 @@ CHROMA_DB_PATH = os.path.join(
     "chroma_db"
 )
 
-# ----------------------------
+# --------------------------------------------------
+# Start Fresh (Optional)
+# --------------------------------------------------
+
+if os.path.exists(CHROMA_DB_PATH):
+    shutil.rmtree(CHROMA_DB_PATH)
+
+os.makedirs(CHROMA_DB_PATH, exist_ok=True)
+
+# --------------------------------------------------
 # Create Chroma Client
-# ----------------------------
+# --------------------------------------------------
 
 client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
@@ -42,18 +52,18 @@ collection = client.get_or_create_collection(
     embedding_function=embedding_function
 )
 
-# ----------------------------
+# --------------------------------------------------
 # Read Corpus
-# ----------------------------
+# --------------------------------------------------
 
 with open(CORPUS_PATH, "r") as f:
     corpus = json.load(f)
 
 print(f"Loaded {len(corpus)} stories")
 
-# ----------------------------
+# --------------------------------------------------
 # Insert Stories
-# ----------------------------
+# --------------------------------------------------
 
 for item in corpus:
 
@@ -71,12 +81,17 @@ Acceptance Criteria:
     collection.upsert(
         ids=[item["id"]],
         documents=[document],
-        metadatas=[{
-            "title": item["title"]
-        }]
+        metadatas=[
+            {
+                "title": item["title"],
+                "story": item["story"],
+                "acceptance_criteria": "\n".join(item["acceptance_criteria"]),
+                "test_cases": "\n\n".join(item["test_cases"])
+            }
+        ]
     )
 
-print("================================")
+print("=" * 50)
 print("Successfully built ChromaDB")
-print("Collection:", collection.count())
-print("================================")
+print(f"Collection contains {collection.count()} stories")
+print("=" * 50)
