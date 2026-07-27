@@ -1,14 +1,15 @@
 """
-AI Test Case Generator UI
--------------------------
-Streamlit Frontend
+AI Test Case Generator
+----------------------
 
-Features:
-- RAG based similar story retrieval
-- Ollama local LLM
-- Groq Cloud LLM
-- Download Gherkin feature file
+Local:
+- Ollama Local AI
+- Groq Cloud AI
+
+Streamlit Cloud:
+- Groq Cloud AI only
 """
+
 
 import os
 import sys
@@ -39,15 +40,35 @@ load_dotenv(
 )
 
 
+# -----------------------------
 # Imports
+# -----------------------------
 
 from retriever import retrieve_similar_stories
-from generator_ollama import generate_test_cases_ollama
-from generator_groq import generate_test_cases_groq
+
+from generator_groq import (
+    generate_test_cases_groq
+)
+
+
+# Import Ollama safely
+
+try:
+
+    from generator_ollama import (
+        generate_test_cases_ollama
+    )
+
+    ollama_available = True
+
+except Exception:
+
+    ollama_available = False
+
 
 
 # -----------------------------
-# Page Configuration
+# Page Setup
 # -----------------------------
 
 st.set_page_config(
@@ -57,52 +78,36 @@ st.set_page_config(
 )
 
 
+
 # -----------------------------
-# Custom CSS
+# CSS
 # -----------------------------
 
 st.markdown(
-    """
-    <style>
+"""
+<style>
 
-    .main-title {
-        font-size: 42px;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 5px;
-    }
+.title {
 
+font-size:42px;
+font-weight:700;
+text-align:center;
 
-    .subtitle {
-        text-align:center;
-        color:gray;
-        font-size:18px;
-        margin-bottom:30px;
-    }
+}
 
 
-    .card {
+.subtitle {
 
-        padding:20px;
-        border-radius:12px;
-        border:1px solid #ddd;
-        margin-bottom:15px;
+text-align:center;
+color:gray;
+font-size:18px;
 
-    }
+}
 
 
-    .stButton button {
-
-        width:100%;
-        height:45px;
-        font-size:18px;
-        font-weight:bold;
-
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
+</style>
+""",
+unsafe_allow_html=True
 )
 
 
@@ -111,17 +116,36 @@ st.markdown(
 # Header
 # -----------------------------
 
-st.markdown(
-    """
-    <div class="main-title">
-    🧪 AI Test Case Generator
-    </div>
 
-    <div class="subtitle">
-    Generate BDD Gherkin test cases using RAG + LLM
-    </div>
-    """,
-    unsafe_allow_html=True
+st.markdown(
+"""
+<div class="title">
+🧪 AI Test Case Generator
+</div>
+
+<div class="subtitle">
+RAG + LLM powered BDD Test Case Generation
+</div>
+
+""",
+unsafe_allow_html=True
+)
+
+
+
+# -----------------------------
+# Detect Environment
+# -----------------------------
+
+
+running_on_cloud = (
+    os.getenv(
+        "STREAMLIT_SHARING_MODE"
+    )
+    or
+    os.getenv(
+        "IS_STREAMLIT_CLOUD"
+    )
 )
 
 
@@ -130,22 +154,49 @@ st.markdown(
 # Sidebar
 # -----------------------------
 
+
 with st.sidebar:
 
 
-    st.header("⚙ Settings")
+    st.header(
+        "⚙ Settings"
+    )
 
 
-    model = st.radio(
+    if running_on_cloud:
 
-        "Select AI Model",
 
-        [
-            "Ollama Local AI",
+        model = "Groq Cloud AI"
+
+        st.info(
+            "Running on Streamlit Cloud\n\nUsing Groq AI"
+        )
+
+
+    else:
+
+
+        available_models = [
             "Groq Cloud AI"
         ]
 
-    )
+
+        if ollama_available:
+
+            available_models.insert(
+                0,
+                "Ollama Local AI"
+            )
+
+
+        model = st.radio(
+
+            "Select AI Model",
+
+            available_models
+
+        )
+
 
 
     st.divider()
@@ -165,9 +216,11 @@ with st.sidebar:
         ],
 
         default=[
+
             "Functional",
             "Negative",
             "Edge Cases"
+
         ]
 
     )
@@ -178,36 +231,26 @@ with st.sidebar:
         "Similar Stories",
 
         1,
+
         6,
+
         3
 
     )
 
 
-    st.info(
-        """
-        Ollama:
-        Free local AI model
-
-        Groq:
-        Fast cloud AI
-        """
-    )
-
-
 
 # -----------------------------
-# Input Section
+# Input
 # -----------------------------
 
 
-col1, col2 = st.columns(
-    2
-)
+col1, col2 = st.columns(2)
 
 
 
 with col1:
+
 
     st.subheader(
         "📝 User Story"
@@ -216,18 +259,19 @@ with col1:
 
     story = st.text_area(
 
-        "Enter user story",
+        "Enter User Story",
 
-        placeholder=
-        """
+        height=220,
+
+        placeholder="""
+
 Example:
 
 As a user,
 I want to login using email and password
 so that I can access my account.
-""",
 
-        height=220
+"""
 
     )
 
@@ -235,27 +279,29 @@ so that I can access my account.
 
 with col2:
 
+
     st.subheader(
         "📋 Acceptance Criteria"
     )
 
 
-    criteria = st.text_area(
+    acceptance = st.text_area(
 
-        "Enter acceptance criteria",
+        "Enter Acceptance Criteria",
 
-        placeholder=
-        """
+        height=220,
+
+        placeholder="""
+
 Example:
 
-User can login with valid credentials.
+User can login successfully.
 
-Invalid password should show error.
+Invalid password shows error.
 
-Account locks after multiple failures.
-""",
+Account locks after failed attempts.
 
-        height=220
+"""
 
     )
 
@@ -263,14 +309,20 @@ Account locks after multiple failures.
 
 st.write("")
 
+
+
 generate = st.button(
-    "🚀 Generate Test Cases"
+
+    "🚀 Generate Test Cases",
+
+    use_container_width=True
+
 )
 
 
 
 # -----------------------------
-# Generation
+# Generate
 # -----------------------------
 
 
@@ -279,220 +331,235 @@ if generate:
 
     if not story.strip():
 
+
         st.error(
-            "Please enter user story"
+            "Please enter a user story"
         )
 
 
-    else:
+        st.stop()
 
 
-        criteria_list = [
 
-            x.strip()
+    criteria_list = [
 
-            for x in criteria.splitlines()
+        x.strip()
 
-            if x.strip()
+        for x in acceptance.splitlines()
 
-        ]
+        if x.strip()
+
+    ]
 
 
-        # Retrieval
 
-        with st.spinner(
-            "🔎 Searching similar stories..."
+    # Retrieval
+
+    with st.spinner(
+        "🔎 Finding similar stories..."
+    ):
+
+
+        similar = retrieve_similar_stories(
+
+            story,
+
+            top_k=top_k
+
+        )
+
+
+
+    st.subheader(
+        "🔎 Similar Stories"
+    )
+
+
+    for item in similar:
+
+
+        with st.expander(
+
+            item["title"]
+
         ):
 
 
-            similar = retrieve_similar_stories(
+            st.write(
 
-                story,
+                item.get(
+                    "story",
+                    ""
+                )
 
-                top_k=top_k
+            )
+
+
+            st.write(
+
+                "Similarity:",
+
+                round(
+
+                    item[
+                        "similarity_score"
+                    ],
+
+                    2
+
+                )
 
             )
 
 
 
-        st.subheader(
-            "🔎 Similar Stories Found"
-        )
+    # Generation
 
 
-        for item in similar:
+    with st.spinner(
+
+        "🤖 Generating test cases..."
+
+    ):
 
 
-            with st.expander(
+        try:
 
-                item["title"]
 
-            ):
+            if model == "Ollama Local AI":
 
-                st.write(
 
-                    item.get(
-                        "story",
-                        ""
-                    )
+                result = generate_test_cases_ollama(
 
-                )
+                    story,
 
-                st.write(
+                    criteria_list,
 
-                    "Similarity Score:",
+                    similar,
 
-                    round(
-                        item["similarity_score"],
-                        2
-                    )
+                    test_types
 
                 )
 
 
-
-        # Generation
-
-        with st.spinner(
-
-            "🤖 Generating test cases..."
-
-        ):
+            else:
 
 
-            try:
+                result = generate_test_cases_groq(
 
+                    story,
 
-                if model == "Ollama Local AI":
+                    criteria_list,
 
+                    similar,
 
-                    result = generate_test_cases_ollama(
-
-                        story,
-
-                        criteria_list,
-
-                        similar,
-
-                        test_types
-
-                    )
-
-
-                else:
-
-
-                    result = generate_test_cases_groq(
-
-                        story,
-
-                        criteria_list,
-
-                        similar,
-
-                        test_types
-
-                    )
-
-
-
-                st.success(
-                    "Test cases generated successfully"
-                )
-
-
-                st.subheader(
-                    "🧪 Generated Gherkin"
-                )
-
-
-                st.code(
-
-                    result,
-
-                    language="gherkin"
+                    test_types
 
                 )
 
 
 
-                # Save file
+            st.success(
+
+                "Generated successfully"
+
+            )
 
 
-                output_dir = os.path.join(
+            st.subheader(
 
-                    os.path.dirname(__file__),
+                "🧪 Generated Gherkin"
 
-                    "..",
-
-                    "output"
-
-                )
+            )
 
 
-                os.makedirs(
+            st.code(
 
-                    output_dir,
+                result,
 
-                    exist_ok=True
+                language="gherkin"
 
-                )
-
-
-                timestamp = datetime.now().strftime(
-
-                    "%Y%m%d_%H%M%S"
-
-                )
-
-
-                filename = (
-
-                    f"test_cases_{timestamp}.feature"
-
-                )
-
-
-                path = os.path.join(
-
-                    output_dir,
-
-                    filename
-
-                )
-
-
-                with open(
-
-                    path,
-
-                    "w"
-
-                ) as f:
-
-                    f.write(result)
+            )
 
 
 
-                st.download_button(
-
-                    label="⬇ Download Feature File",
-
-                    data=result,
-
-                    file_name=filename,
-
-                    mime="text/plain"
-
-                )
+            # Save output
 
 
+            output_dir = os.path.join(
 
-            except Exception as e:
+                os.path.dirname(__file__),
+
+                "..",
+
+                "output"
+
+            )
 
 
-                st.error(
+            os.makedirs(
 
-                    f"Generation failed: {e}"
+                output_dir,
 
-                )
+                exist_ok=True
+
+            )
+
+
+            timestamp = datetime.now().strftime(
+
+                "%Y%m%d_%H%M%S"
+
+            )
+
+
+            filename = (
+
+                f"test_cases_{timestamp}.feature"
+
+            )
+
+
+            filepath = os.path.join(
+
+                output_dir,
+
+                filename
+
+            )
+
+
+            with open(
+
+                filepath,
+
+                "w"
+
+            ) as file:
+
+
+                file.write(result)
+
+
+
+            st.download_button(
+
+                label="⬇ Download Feature File",
+
+                data=result,
+
+                file_name=filename,
+
+                mime="text/plain"
+
+            )
+
+
+        except Exception as e:
+
+
+            st.error(
+
+                f"Generation failed: {e}"
+
+            )
