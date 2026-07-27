@@ -1,63 +1,70 @@
 """
 retriever.py
 -------------
-Given a NEW user story, this finds the most similar past stories
-(and their existing test cases) from the vector index. These similar
-examples are then handed to the AI as reference material ("retrieval-
-augmented generation").
+Retrieves similar user stories from ChromaDB.
+
+This file is a drop-in replacement for the old FAISS retriever.
+It returns the SAME structure so the rest of the application
+(generator.py, app.py) does not need any changes.
 """
 
 import os
-import pickle
 
-import faiss
-import numpy as np
-from sentence_transformers import SentenceTransformer
+import chromadb
+from chromadb.utils import embedding_functions
 
-INDEX_DIR = os.path.join(os.path.dirname(__file__), "..", "vector_index")
-INDEX_PATH = os.path.join(INDEX_DIR, "stories.index")
-METADATA_PATH = os.path.join(INDEX_DIR, "stories_metadata.pkl")
+CHROMA_DB_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "chroma_db"
+)
 
-EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
-
-_model = None
-_index = None
-_metadata = None
+_client = None
+_collection = None
 
 
 def _load():
-    global _model, _index, _metadata
-    if _model is None:
-        _model = SentenceTransformer(EMBEDDING_MODEL_NAME)
-    if _index is None:
-        if not os.path.exists(INDEX_PATH):
-            raise FileNotFoundError(
-                "Vector index not found. Run 'python src/build_index.py' first."
-            )
-        _index = faiss.read_index(INDEX_PATH)
-    if _metadata is None:
-        with open(METADATA_PATH, "rb") as f:
-            _metadata = pickle.load(f)
+    global _client, _collection
+
+    if _client is None:
+        _client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+
+    if _collection is None:
+        embedding_function = embedding_functions.DefaultEmbeddingFunction()
+
+        _collection = _client.get_collection(
+            name="sample_stories",
+            embedding_function=embedding_function
+        )
 
 
 def retrieve_similar_stories(new_story_text: str, top_k: int = 3):
     """
-    Returns the top_k most similar past stories (with their test cases)
-    to the given new story text.
+    Returns the same structure as the old FAISS retriever.
     """
+
     _load()
 
-    query_vec = _model.encode([new_story_text], normalize_embeddings=True)
-    query_vec = np.array(query_vec).astype("float32")
+    results = _collection.query(
+        query_texts=[new_story_text],
+        n_results=top_k
+    )
 
-    scores, indices = _index.search(query_vec, top_k)
+    stories = []
 
-    results = []
-    for score, idx in zip(scores[0], indices[0]):
-        if idx == -1:
-            continue
-        item = dict(_metadata[idx])
-        item["similarity_score"] = float(score)
-        results.append(item)
+    for i in range(len(results["ids"][0])):
 
-    return results
+        metadata = results["metadatas"][0][i]
+
+        stories.append(
+            {
+                "id": results["ids"][0][i],
+                "title": metadata["title"],
+                "story": metadata["story"],
+                "acceptance_criteria": metadata["acceptance_criteria"].split("\n"),
+                "test_cases": metadata["test_cases"].split("\n\n"),
+                "similarity_score": float(results["distances"][0][i]),
+            }
+        )
+
+    return stories
