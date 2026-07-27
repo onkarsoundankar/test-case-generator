@@ -1,14 +1,13 @@
 """
-app.py
--------
-A simple browser-based demo of the pipeline (retrieval + generation),
-so you don't need to type Terminal commands during a demo.
+AI Test Case Generator UI
+-------------------------
+Streamlit Frontend
 
-Run with:
-    streamlit run src/app.py
-
-This opens a local web page at http://localhost:8501 that you interact
-with entirely through buttons and text boxes.
+Features:
+- RAG based similar story retrieval
+- Ollama local LLM
+- Groq Cloud LLM
+- Download Gherkin feature file
 """
 
 import os
@@ -18,112 +17,482 @@ from datetime import datetime
 import streamlit as st
 from dotenv import load_dotenv
 
-sys.path.insert(0, os.path.dirname(__file__))
+
+# -----------------------------
+# Path setup
+# -----------------------------
+
+sys.path.insert(
+    0,
+    os.path.dirname(__file__)
+)
+
+
+# Load environment variables
+
+load_dotenv(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        ".env"
+    )
+)
+
+
+# Imports
 
 from retriever import retrieve_similar_stories
-from generator import generate_test_cases, generate_test_cases_mock, build_user_prompt, SYSTEM_PROMPT
-import build_index as build_index_module
+from generator_ollama import generate_test_cases_ollama
+from generator_groq import generate_test_cases_groq
 
-load_dotenv()
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
+# -----------------------------
+# Page Configuration
+# -----------------------------
 
-st.set_page_config(page_title="AI Test Case Generator", page_icon="🧪", layout="wide")
+st.set_page_config(
+    page_title="AI Test Case Generator",
+    page_icon="🧪",
+    layout="wide"
+)
 
-# Build the vector index automatically if it doesn't exist yet (e.g. first time
-# this app runs on a fresh cloud deployment, where nobody ran build_index.py by hand).
-if not os.path.exists(build_index_module.INDEX_PATH):
-    with st.spinner("First-time setup: building the search index..."):
-        build_index_module.build_index()
 
-st.title("🧪 AI-Powered Test Case Generator")
-st.caption("RAG pipeline: retrieves similar past stories, then generates BDD/Gherkin test cases.")
+# -----------------------------
+# Custom CSS
+# -----------------------------
 
-has_api_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
+st.markdown(
+    """
+    <style>
+
+    .main-title {
+        font-size: 42px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+
+    .subtitle {
+        text-align:center;
+        color:gray;
+        font-size:18px;
+        margin-bottom:30px;
+    }
+
+
+    .card {
+
+        padding:20px;
+        border-radius:12px;
+        border:1px solid #ddd;
+        margin-bottom:15px;
+
+    }
+
+
+    .stButton button {
+
+        width:100%;
+        height:45px;
+        font-size:18px;
+        font-weight:bold;
+
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
+# -----------------------------
+# Header
+# -----------------------------
+
+st.markdown(
+    """
+    <div class="main-title">
+    🧪 AI Test Case Generator
+    </div>
+
+    <div class="subtitle">
+    Generate BDD Gherkin test cases using RAG + LLM
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
+# -----------------------------
+# Sidebar
+# -----------------------------
 
 with st.sidebar:
-    st.header("Settings")
 
-    if has_api_key:
-        mode = st.radio(
-            "Generation mode",
-            ["AI Generate", "Quick Generate", "Copy Prompt for Claude.ai"],
-            index=0,
-        )
-    else:
-        mode = st.radio(
-            "Generation mode",
-            ["Quick Generate", "Copy Prompt for Claude.ai"],
-            index=0,
-        )
+
+    st.header("⚙ Settings")
+
+
+    model = st.radio(
+
+        "Select AI Model",
+
+        [
+            "Ollama Local AI",
+            "Groq Cloud AI"
+        ]
+
+    )
+
+
+    st.divider()
+
 
     test_types = st.multiselect(
-        "Test types to generate",
-        ["functional", "edge", "negative", "smoke", "regression", "exploratory"],
-        default=["functional", "edge", "negative"],
+
+        "Test Coverage",
+
+        [
+            "Functional",
+            "Negative",
+            "Edge Cases",
+            "Regression",
+            "Smoke",
+            "Security"
+        ],
+
+        default=[
+            "Functional",
+            "Negative",
+            "Edge Cases"
+        ]
+
     )
-    top_k = st.slider("Number of similar past examples to retrieve", 1, 6, 3)
 
-st.subheader("1. Enter a user story")
-story_text = st.text_area(
-    "User story",
-    placeholder="As a user, I want to reset my password via email so that I can regain access to my account.",
-    height=100,
+
+    top_k = st.slider(
+
+        "Similar Stories",
+
+        1,
+        6,
+        3
+
+    )
+
+
+    st.info(
+        """
+        Ollama:
+        Free local AI model
+
+        Groq:
+        Fast cloud AI
+        """
+    )
+
+
+
+# -----------------------------
+# Input Section
+# -----------------------------
+
+
+col1, col2 = st.columns(
+    2
 )
-acceptance_criteria_raw = st.text_area(
-    "Acceptance criteria (one per line, optional)",
-    placeholder="User can request a reset link via email\nReset link expires after 30 minutes\nNew password must meet complexity rules",
-    height=100,
+
+
+
+with col1:
+
+    st.subheader(
+        "📝 User Story"
+    )
+
+
+    story = st.text_area(
+
+        "Enter user story",
+
+        placeholder=
+        """
+Example:
+
+As a user,
+I want to login using email and password
+so that I can access my account.
+""",
+
+        height=220
+
+    )
+
+
+
+with col2:
+
+    st.subheader(
+        "📋 Acceptance Criteria"
+    )
+
+
+    criteria = st.text_area(
+
+        "Enter acceptance criteria",
+
+        placeholder=
+        """
+Example:
+
+User can login with valid credentials.
+
+Invalid password should show error.
+
+Account locks after multiple failures.
+""",
+
+        height=220
+
+    )
+
+
+
+st.write("")
+
+generate = st.button(
+    "🚀 Generate Test Cases"
 )
 
-generate_clicked = st.button("Generate Test Cases", type="primary", use_container_width=True)
 
-if generate_clicked:
-    if not story_text.strip():
-        st.error("Please enter a user story first.")
+
+# -----------------------------
+# Generation
+# -----------------------------
+
+
+if generate:
+
+
+    if not story.strip():
+
+        st.error(
+            "Please enter user story"
+        )
+
+
     else:
-        acceptance_criteria = [line.strip() for line in acceptance_criteria_raw.splitlines() if line.strip()]
 
-        with st.spinner("Retrieving similar past stories..."):
-            similar = retrieve_similar_stories(story_text, top_k=top_k)
 
-        st.subheader("2. Retrieved similar past stories (RAG match)")
-        for ex in similar:
-            st.write(f"**{ex['title']}** — similarity: `{ex['similarity_score']:.2f}`")
+        criteria_list = [
 
-        st.subheader("3. Generated test cases")
+            x.strip()
 
-        if mode == "Copy Prompt for Claude.ai":
-            prompt = build_user_prompt(story_text, acceptance_criteria, similar, test_types)
-            full_prompt = SYSTEM_PROMPT + "\n\n" + prompt
-            st.info("Copy the box below, paste it into https://claude.ai, then paste the reply back here manually.")
-            st.code(full_prompt, language="text")
+            for x in criteria.splitlines()
 
-        elif mode == "Quick Generate":
-            with st.spinner("Generating test cases..."):
-                result = generate_test_cases_mock(story_text, acceptance_criteria, similar, test_types)
-            st.code(result, language="gherkin")
+            if x.strip()
 
-            os.makedirs(OUTPUT_DIR, exist_ok=True)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = os.path.join(OUTPUT_DIR, f"test_cases_{timestamp}.feature")
-            with open(output_path, "w") as f:
-                f.write(result)
-            st.success(f"Saved to: {output_path}")
-            st.download_button("Download .feature file", result, file_name=f"test_cases_{timestamp}.feature")
+        ]
 
-        else:  # AI Generate
-            with st.spinner("Calling Claude..."):
-                try:
-                    result = generate_test_cases(story_text, acceptance_criteria, similar, test_types)
-                    st.code(result, language="gherkin")
 
-                    os.makedirs(OUTPUT_DIR, exist_ok=True)
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    output_path = os.path.join(OUTPUT_DIR, f"test_cases_{timestamp}.feature")
-                    with open(output_path, "w") as f:
-                        f.write(result)
-                    st.success(f"Saved to: {output_path}")
-                    st.download_button("Download .feature file", result, file_name=f"test_cases_{timestamp}.feature")
-                except Exception as e:
-                    st.error(f"Generation failed: {e}")
+        # Retrieval
+
+        with st.spinner(
+            "🔎 Searching similar stories..."
+        ):
+
+
+            similar = retrieve_similar_stories(
+
+                story,
+
+                top_k=top_k
+
+            )
+
+
+
+        st.subheader(
+            "🔎 Similar Stories Found"
+        )
+
+
+        for item in similar:
+
+
+            with st.expander(
+
+                item["title"]
+
+            ):
+
+                st.write(
+
+                    item.get(
+                        "story",
+                        ""
+                    )
+
+                )
+
+                st.write(
+
+                    "Similarity Score:",
+
+                    round(
+                        item["similarity_score"],
+                        2
+                    )
+
+                )
+
+
+
+        # Generation
+
+        with st.spinner(
+
+            "🤖 Generating test cases..."
+
+        ):
+
+
+            try:
+
+
+                if model == "Ollama Local AI":
+
+
+                    result = generate_test_cases_ollama(
+
+                        story,
+
+                        criteria_list,
+
+                        similar,
+
+                        test_types
+
+                    )
+
+
+                else:
+
+
+                    result = generate_test_cases_groq(
+
+                        story,
+
+                        criteria_list,
+
+                        similar,
+
+                        test_types
+
+                    )
+
+
+
+                st.success(
+                    "Test cases generated successfully"
+                )
+
+
+                st.subheader(
+                    "🧪 Generated Gherkin"
+                )
+
+
+                st.code(
+
+                    result,
+
+                    language="gherkin"
+
+                )
+
+
+
+                # Save file
+
+
+                output_dir = os.path.join(
+
+                    os.path.dirname(__file__),
+
+                    "..",
+
+                    "output"
+
+                )
+
+
+                os.makedirs(
+
+                    output_dir,
+
+                    exist_ok=True
+
+                )
+
+
+                timestamp = datetime.now().strftime(
+
+                    "%Y%m%d_%H%M%S"
+
+                )
+
+
+                filename = (
+
+                    f"test_cases_{timestamp}.feature"
+
+                )
+
+
+                path = os.path.join(
+
+                    output_dir,
+
+                    filename
+
+                )
+
+
+                with open(
+
+                    path,
+
+                    "w"
+
+                ) as f:
+
+                    f.write(result)
+
+
+
+                st.download_button(
+
+                    label="⬇ Download Feature File",
+
+                    data=result,
+
+                    file_name=filename,
+
+                    mime="text/plain"
+
+                )
+
+
+
+            except Exception as e:
+
+
+                st.error(
+
+                    f"Generation failed: {e}"
+
+                )
