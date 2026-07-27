@@ -1,0 +1,19 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+src/.env
+
+# Mac files
+.DS_Store
+
+# Generated files
+chroma_db/
+vector_index/
+output/
+
+# Streamlit
+.streamlit/
