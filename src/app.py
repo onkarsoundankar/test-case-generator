@@ -50,6 +50,8 @@ from generator_groq import (
     generate_test_cases_groq
 )
 
+from jira_client import fetch_story_from_jira
+
 
 # Import Ollama safely
 
@@ -244,6 +246,40 @@ with st.sidebar:
 # Input
 # -----------------------------
 
+# -----------------------------
+# Jira Import
+# -----------------------------
+
+st.subheader("📥 Import User Story from Jira")
+
+jira_issue_key = st.text_input(
+    "Enter Jira Issue Key",
+    placeholder="Example: KAN-6"
+)
+
+
+if st.button("📥 Fetch from Jira"):
+
+    if jira_issue_key.strip():
+
+        try:
+
+            jira_data = fetch_story_from_jira(
+                jira_issue_key.strip()
+            )
+
+            st.session_state["story"] = jira_data["story"]
+            st.session_state["acceptance"] = jira_data["acceptance"]
+
+            st.success(
+                f"{jira_issue_key} imported successfully!"
+            )
+
+        except Exception as e:
+
+            st.error(
+                f"Unable to fetch Jira story.\n\n{e}"
+            )
 
 col1, col2 = st.columns(2)
 
@@ -251,26 +287,20 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-
     st.subheader(
         "📝 User Story"
     )
 
-
     story = st.text_area(
-
         "Enter User Story",
-
+        value=st.session_state.get("story", ""),
         height=220,
-
         placeholder="""
-
 Example:
 
 As a user,
 I want to login using email and password
 so that I can access my account.
-
 """
 
     )
@@ -279,20 +309,18 @@ so that I can access my account.
 
 with col2:
 
-
     st.subheader(
         "📋 Acceptance Criteria"
     )
 
-
     acceptance = st.text_area(
-
         "Enter Acceptance Criteria",
-
+        value=st.session_state.get(
+            "acceptance",
+            ""
+        ),
         height=220,
-
         placeholder="""
-
 Example:
 
 User can login successfully.
@@ -300,9 +328,7 @@ User can login successfully.
 Invalid password shows error.
 
 Account locks after failed attempts.
-
 """
-
     )
 
 
