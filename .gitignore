@@ -17,3 +17,6 @@ output/
 
 # Streamlit
 .streamlit/
+.DS_Store
+__pycache__/
+*.pyc
