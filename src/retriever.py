@@ -13,9 +13,10 @@ import os
 import chromadb
 from chromadb.utils import embedding_functions
 
+import tempfile
+
 CHROMA_DB_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..",
+    tempfile.gettempdir(),
     "chroma_db"
 )
 
