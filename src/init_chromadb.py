@@ -6,12 +6,12 @@ from chromadb.utils import embedding_functions
 
 from build_chromadb import build_chromadb
 
+import tempfile
+
 CHROMA_DB_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..",
+    tempfile.gettempdir(),
     "chroma_db"
 )
-
 
 def initialize_chromadb():
     """

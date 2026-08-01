@@ -24,9 +24,10 @@ CORPUS_PATH = os.path.join(
     "sample_stories.json"
 )
 
+import tempfile
+
 CHROMA_DB_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..",
+    tempfile.gettempdir(),
     "chroma_db"
 )
 
