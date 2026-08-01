@@ -232,3 +232,4 @@ The more real examples you add, the better the AI's style/structure matching get
 - A simple web UI (Streamlit) instead of the command line
 - Swap the local embedding model for OpenAI/Claude embeddings if you want higher quality matching
 - Auto-push generated `.feature` files back into Jira or a test management tool
+# redeploy
