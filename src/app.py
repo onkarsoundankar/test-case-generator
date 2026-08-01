@@ -20,6 +20,8 @@ import sys
 from datetime import datetime
 from report_utils import generate_report, report_to_json
 from init_chromadb import initialize_chromadb
+import tempfile
+from pdf_report import create_pdf_report
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -572,18 +574,23 @@ if generate:
         )
                 
 
-    report_json = report_to_json(
-        report
+        pdf_file = tempfile.NamedTemporaryFile(
+        delete=False,
+        suffix=".pdf"
     )
 
-
-    st.download_button(
-        label="📥 Download Evaluation Report (JSON)",
-        data=report_json,
-        file_name="evaluation_report.json",
-        mime="application/json"
+    create_pdf_report(
+        evaluation_result=report,
+        output_path=pdf_file.name
     )
 
+    with open(pdf_file.name, "rb") as f:
+        st.download_button(
+            label="📄 Download Evaluation Report (PDF)",
+            data=f.read(),
+            file_name="evaluation_report.pdf",
+            mime="application/pdf"
+        )
 
     # -----------------------------
     # Save Feature File
@@ -621,27 +628,8 @@ if generate:
 
         file.write(result)
 
-
-
- import tempfile
-
-from pdf_report import create_pdf_report
-
 pdf_file = tempfile.NamedTemporaryFile(
     delete=False,
     suffix=".pdf"
 )
 
-create_pdf_report(
-    evaluation_result=report,
-    output_path=pdf_file.name
-)
-
-with open(pdf_file.name, "rb") as f:
-
-    st.download_button(
-        label="📄 Download Evaluation Report (PDF)",
-        data=f,
-        file_name="evaluation_report.pdf",
-        mime="application/pdf",
-    )
