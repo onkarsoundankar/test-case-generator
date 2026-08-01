@@ -1,0 +1,20 @@
+{
+  "story_id": "REG001",
+  "title": "User Registration",
+  "user_story": "As a new user, I want to register with my personal details so that I can create an account.",
+  "acceptance_criteria": [
+    "User can register with valid details",
+    "Email address must be unique",
+    "Password must meet complexity requirements",
+    "Mandatory fields cannot be left blank",
+    "Registration confirmation message is displayed"
+  ],
+  "manual_test_cases": [
+    "Verify successful registration with valid details",
+    "Verify registration fails when email already exists",
+    "Verify password complexity validation",
+    "Verify validation messages for mandatory fields",
+    "Verify confirmation message after successful registration",
+    "Verify user cannot register with an invalid email format"
+  ]
+}

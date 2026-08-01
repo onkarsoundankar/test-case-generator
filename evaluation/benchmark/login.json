@@ -1,0 +1,20 @@
+{
+  "story_id": "LOGIN001",
+  "title": "User Login",
+  "user_story": "As a registered user, I want to log in using my email and password so that I can securely access my account.",
+  "acceptance_criteria": [
+    "User can log in with valid email and password",
+    "Error message is displayed for invalid password",
+    "Validation message is displayed when mandatory fields are empty",
+    "Locked users cannot log in",
+    "User is redirected to the dashboard after successful login"
+  ],
+  "manual_test_cases": [
+    "Verify successful login with valid email and password",
+    "Verify error message for invalid password",
+    "Verify validation message when email is empty",
+    "Verify validation message when password is empty",
+    "Verify locked account cannot log in",
+    "Verify user is redirected to the dashboard after successful login"
+  ]
+}

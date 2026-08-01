@@ -1,0 +1,23 @@
+[
+    {
+        "story_id": "REG001",
+        "title": "User Registration",
+        "manual_test_cases": 6,
+        "generated_scenarios": 30,
+        "coverage_percent": 20.0
+    },
+    {
+        "story_id": "LOGIN001",
+        "title": "User Login",
+        "manual_test_cases": 6,
+        "generated_scenarios": 19,
+        "coverage_percent": 31.58
+    },
+    {
+        "story_id": "FP001",
+        "title": "Forgot Password",
+        "manual_test_cases": 6,
+        "generated_scenarios": 24,
+        "coverage_percent": 25.0
+    }
+]
