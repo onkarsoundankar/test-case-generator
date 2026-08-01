@@ -2,14 +2,11 @@
 build_chromadb.py
 -----------------
 Reads the corpus of user stories and stores them in ChromaDB.
-
-Run:
-    python3 src/build_chromadb.py
 """
 
 import json
 import os
-import shutil
+import tempfile
 
 import chromadb
 from chromadb.utils import embedding_functions
@@ -24,8 +21,7 @@ CORPUS_PATH = os.path.join(
     "sample_stories.json"
 )
 
-import tempfile
-
+# Writable on Streamlit Cloud
 CHROMA_DB_PATH = os.path.join(
     tempfile.gettempdir(),
     "chroma_db"
@@ -33,11 +29,9 @@ CHROMA_DB_PATH = os.path.join(
 
 
 def build_chromadb():
-    """Creates and populates the ChromaDB database."""
+    """Creates and populates ChromaDB if it doesn't already exist."""
 
-    # Start fresh
-    if os.path.exists(CHROMA_DB_PATH):
-        shutil.rmtree(CHROMA_DB_PATH)
+    print(f"Using ChromaDB path: {CHROMA_DB_PATH}")
 
     os.makedirs(CHROMA_DB_PATH, exist_ok=True)
 
@@ -45,12 +39,26 @@ def build_chromadb():
 
     embedding_function = embedding_functions.DefaultEmbeddingFunction()
 
-    collection = client.get_or_create_collection(
+    # If collection already exists, don't rebuild it
+    try:
+        collection = client.get_collection(
+            name="sample_stories",
+            embedding_function=embedding_function
+        )
+
+        print("Collection already exists.")
+        print(f"Collection contains {collection.count()} stories")
+        return
+
+    except Exception:
+        pass
+
+    collection = client.create_collection(
         name="sample_stories",
         embedding_function=embedding_function
     )
 
-    with open(CORPUS_PATH, "r") as f:
+    with open(CORPUS_PATH, "r", encoding="utf-8") as f:
         corpus = json.load(f)
 
     print(f"Loaded {len(corpus)} stories")
@@ -68,7 +76,7 @@ Acceptance Criteria:
 {' '.join(item['acceptance_criteria'])}
 """
 
-        collection.upsert(
+        collection.add(
             ids=[item["id"]],
             documents=[document],
             metadatas=[
