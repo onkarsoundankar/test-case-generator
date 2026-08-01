@@ -1,0 +1,1 @@
+generate_pdf_report(json_path, pdf_path)
