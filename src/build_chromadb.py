@@ -30,44 +30,33 @@ CHROMA_DB_PATH = os.path.join(
     "chroma_db"
 )
 
-# --------------------------------------------------
-# Start Fresh (Optional)
-# --------------------------------------------------
 
-if os.path.exists(CHROMA_DB_PATH):
-    shutil.rmtree(CHROMA_DB_PATH)
+def build_chromadb():
+    """Creates and populates the ChromaDB database."""
 
-os.makedirs(CHROMA_DB_PATH, exist_ok=True)
+    # Start fresh
+    if os.path.exists(CHROMA_DB_PATH):
+        shutil.rmtree(CHROMA_DB_PATH)
 
-# --------------------------------------------------
-# Create Chroma Client
-# --------------------------------------------------
+    os.makedirs(CHROMA_DB_PATH, exist_ok=True)
 
-client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+    client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
-embedding_function = embedding_functions.DefaultEmbeddingFunction()
+    embedding_function = embedding_functions.DefaultEmbeddingFunction()
 
-collection = client.get_or_create_collection(
-    name="sample_stories",
-    embedding_function=embedding_function
-)
+    collection = client.get_or_create_collection(
+        name="sample_stories",
+        embedding_function=embedding_function
+    )
 
-# --------------------------------------------------
-# Read Corpus
-# --------------------------------------------------
+    with open(CORPUS_PATH, "r") as f:
+        corpus = json.load(f)
 
-with open(CORPUS_PATH, "r") as f:
-    corpus = json.load(f)
+    print(f"Loaded {len(corpus)} stories")
 
-print(f"Loaded {len(corpus)} stories")
+    for item in corpus:
 
-# --------------------------------------------------
-# Insert Stories
-# --------------------------------------------------
-
-for item in corpus:
-
-    document = f"""
+        document = f"""
 Title:
 {item['title']}
 
@@ -78,20 +67,24 @@ Acceptance Criteria:
 {' '.join(item['acceptance_criteria'])}
 """
 
-    collection.upsert(
-        ids=[item["id"]],
-        documents=[document],
-        metadatas=[
-            {
-                "title": item["title"],
-                "story": item["story"],
-                "acceptance_criteria": "\n".join(item["acceptance_criteria"]),
-                "test_cases": "\n\n".join(item["test_cases"])
-            }
-        ]
-    )
+        collection.upsert(
+            ids=[item["id"]],
+            documents=[document],
+            metadatas=[
+                {
+                    "title": item["title"],
+                    "story": item["story"],
+                    "acceptance_criteria": "\n".join(item["acceptance_criteria"]),
+                    "test_cases": "\n\n".join(item["test_cases"])
+                }
+            ]
+        )
 
-print("=" * 50)
-print("Successfully built ChromaDB")
-print(f"Collection contains {collection.count()} stories")
-print("=" * 50)
+    print("=" * 50)
+    print("Successfully built ChromaDB")
+    print(f"Collection contains {collection.count()} stories")
+    print("=" * 50)
+
+
+if __name__ == "__main__":
+    build_chromadb()

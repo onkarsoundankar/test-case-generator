@@ -11,14 +11,19 @@ Streamlit Cloud:
 """
 
 
+
+
+
+
 import os
 import sys
 from datetime import datetime
 from report_utils import generate_report, report_to_json
+from init_chromadb import initialize_chromadb
 import streamlit as st
 from dotenv import load_dotenv
 
-
+initialize_chromadb()
 # -----------------------------
 # Path setup
 # -----------------------------
