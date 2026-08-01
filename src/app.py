@@ -623,9 +623,25 @@ if generate:
 
 
 
+ import tempfile
+
+from pdf_report import create_pdf_report
+
+pdf_file = tempfile.NamedTemporaryFile(
+    delete=False,
+    suffix=".pdf"
+)
+
+create_pdf_report(
+    evaluation_result=report,
+    output_path=pdf_file.name
+)
+
+with open(pdf_file.name, "rb") as f:
+
     st.download_button(
-        label="⬇ Download Feature File",
-        data=result,
-        file_name=filename,
-        mime="text/plain"
+        label="📄 Download Evaluation Report (PDF)",
+        data=f,
+        file_name="evaluation_report.pdf",
+        mime="application/pdf",
     )
