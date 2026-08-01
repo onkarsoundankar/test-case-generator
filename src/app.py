@@ -17,15 +17,9 @@ Streamlit Cloud:
 
 import os
 import sys
-from datetime import datetime
-from report_utils import generate_report, report_to_json
-from init_chromadb import initialize_chromadb
 import tempfile
-from pdf_report import create_pdf_report
-import streamlit as st
-from dotenv import load_dotenv
+from datetime import datetime
 
-initialize_chromadb()
 # -----------------------------
 # Path setup
 # -----------------------------
@@ -34,6 +28,17 @@ sys.path.insert(
     0,
     os.path.dirname(__file__)
 )
+
+import streamlit as st
+from dotenv import load_dotenv
+
+from init_chromadb import initialize_chromadb
+from report_utils import generate_report, report_to_json
+from pdf_report import create_pdf_report
+
+
+# Initialize ChromaDB
+initialize_chromadb()
 
 
 # Load environment variables
@@ -85,7 +90,15 @@ st.set_page_config(
     page_icon="🧪",
     layout="wide"
 )
+# -----------------------------
+# Session State Initialization
+# -----------------------------
 
+if "story" not in st.session_state:
+    st.session_state["story"] = ""
+
+if "acceptance" not in st.session_state:
+    st.session_state["acceptance"] = ""
 
 
 # -----------------------------
@@ -148,15 +161,10 @@ unsafe_allow_html=True
 
 
 running_on_cloud = (
-    os.getenv(
-        "STREAMLIT_SHARING_MODE"
-    )
+    os.getenv("STREAMLIT_SHARING_MODE") is not None
     or
-    os.getenv(
-        "IS_STREAMLIT_CLOUD"
-    )
+    os.getenv("IS_STREAMLIT_CLOUD") is not None
 )
-
 
 
 # -----------------------------
