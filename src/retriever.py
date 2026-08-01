@@ -2,19 +2,15 @@
 retriever.py
 -------------
 Retrieves similar user stories from ChromaDB.
-
-This file is a drop-in replacement for the old FAISS retriever.
-It returns the SAME structure so the rest of the application
-(generator.py, app.py) does not need any changes.
 """
 
 import os
+import tempfile
 
 import chromadb
 from chromadb.utils import embedding_functions
 
-import tempfile
-
+# Store ChromaDB in a writable temp directory
 CHROMA_DB_PATH = os.path.join(
     tempfile.gettempdir(),
     "chroma_db"
@@ -41,7 +37,7 @@ def _load():
 
 def retrieve_similar_stories(new_story_text: str, top_k: int = 3):
     """
-    Returns the same structure as the old FAISS retriever.
+    Retrieve the most similar user stories from ChromaDB.
     """
 
     _load()
@@ -52,6 +48,9 @@ def retrieve_similar_stories(new_story_text: str, top_k: int = 3):
     )
 
     stories = []
+
+    if not results["ids"] or len(results["ids"][0]) == 0:
+        return stories
 
     for i in range(len(results["ids"][0])):
 
