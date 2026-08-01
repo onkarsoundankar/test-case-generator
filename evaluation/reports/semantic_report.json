@@ -1,0 +1,29 @@
+[
+    {
+        "story": "User Registration",
+        "manual_test_cases": 6,
+        "generated_scenarios": 30,
+        "covered": 2,
+        "missing": 4,
+        "coverage_percent": 33.33,
+        "average_similarity": 0.725
+    },
+    {
+        "story": "User Login",
+        "manual_test_cases": 6,
+        "generated_scenarios": 19,
+        "covered": 2,
+        "missing": 4,
+        "coverage_percent": 33.33,
+        "average_similarity": 0.632
+    },
+    {
+        "story": "Forgot Password",
+        "manual_test_cases": 6,
+        "generated_scenarios": 24,
+        "covered": 4,
+        "missing": 2,
+        "coverage_percent": 66.67,
+        "average_similarity": 0.762
+    }
+]

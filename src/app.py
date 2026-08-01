@@ -14,7 +14,7 @@ Streamlit Cloud:
 import os
 import sys
 from datetime import datetime
-
+from report_utils import generate_report, report_to_json
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -508,79 +508,6 @@ if generate:
             )
 
 
-
-            # Save output
-
-
-            output_dir = os.path.join(
-
-                os.path.dirname(__file__),
-
-                "..",
-
-                "output"
-
-            )
-
-
-            os.makedirs(
-
-                output_dir,
-
-                exist_ok=True
-
-            )
-
-
-            timestamp = datetime.now().strftime(
-
-                "%Y%m%d_%H%M%S"
-
-            )
-
-
-            filename = (
-
-                f"test_cases_{timestamp}.feature"
-
-            )
-
-
-            filepath = os.path.join(
-
-                output_dir,
-
-                filename
-
-            )
-
-
-            with open(
-
-                filepath,
-
-                "w"
-
-            ) as file:
-
-
-                file.write(result)
-
-
-
-            st.download_button(
-
-                label="⬇ Download Feature File",
-
-                data=result,
-
-                file_name=filename,
-
-                mime="text/plain"
-
-            )
-
-
         except Exception as e:
 
 
@@ -589,3 +516,111 @@ if generate:
                 f"Generation failed: {e}"
 
             )
+
+
+            st.stop()
+
+    # -----------------------------
+    # Evaluation Report
+    # -----------------------------
+
+    report = generate_report(
+
+        story_title="User Story",
+
+        manual_test_cases=criteria_list,
+
+        generated_test_cases=result
+
+    )
+
+
+    st.subheader(
+        "📊 Evaluation Summary"
+    )
+
+
+    col1, col2, col3 = st.columns(3)
+
+
+    with col1:
+
+        st.metric(
+            "Manual Test Cases",
+            report["manual_test_cases"]
+        )
+
+
+    with col2:
+
+        st.metric(
+            "Generated Scenarios",
+            report["generated_scenarios"]
+        )
+
+
+    with col3:
+
+        st.metric(
+            "Coverage",
+            f'{report["coverage_percent"]}%'
+        )
+                
+
+    report_json = report_to_json(
+        report
+    )
+
+
+    st.download_button(
+        label="📥 Download Evaluation Report (JSON)",
+        data=report_json,
+        file_name="evaluation_report.json",
+        mime="application/json"
+    )
+
+
+    # -----------------------------
+    # Save Feature File
+    # -----------------------------
+
+
+    output_dir = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "output"
+    )
+
+
+    os.makedirs(
+        output_dir,
+        exist_ok=True
+    )
+
+
+    timestamp = datetime.now().strftime(
+        "%Y%m%d_%H%M%S"
+    )
+
+
+    filename = f"test_cases_{timestamp}.feature"
+
+
+    filepath = os.path.join(
+        output_dir,
+        filename
+    )
+
+
+    with open(filepath, "w") as file:
+
+        file.write(result)
+
+
+
+    st.download_button(
+        label="⬇ Download Feature File",
+        data=result,
+        file_name=filename,
+        mime="text/plain"
+    )
