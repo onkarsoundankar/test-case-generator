@@ -36,12 +36,13 @@ from dotenv import load_dotenv
 # Streamlit Cloud Detection
 # -----------------------------
 
-try:
-    running_on_cloud = st.runtime.exists()
+# -----------------------------
+# Streamlit Cloud Detection
+# -----------------------------
 
-except Exception:
-    running_on_cloud = False
-
+running_on_cloud = (
+    os.getenv("STREAMLIT_CLOUD") == "true"
+)
 
 
 # -----------------------------
