@@ -36,12 +36,15 @@ from dotenv import load_dotenv
 # Streamlit Cloud Detection
 # -----------------------------
 
-running_on_cloud = (
-    os.getenv("STREAMLIT_RUNTIME_ENV") == "cloud"
-)
+running_on_cloud = False
 
-st.write("Cloud Detection:", running_on_cloud)
-st.write("Runtime Env:", os.getenv("STREAMLIT_RUNTIME_ENV"))
+try:
+    running_on_cloud = st.secrets.get("STREAMLIT_CLOUD", "false") == "true"
+
+except Exception:
+    running_on_cloud = False
+
+
 # -----------------------------
 # Load Environment Variables
 # -----------------------------
