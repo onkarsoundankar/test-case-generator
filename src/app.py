@@ -31,15 +31,17 @@ import streamlit as st
 from dotenv import load_dotenv
 
 
+
 # -----------------------------
-# Environment Detection
+# Streamlit Cloud Detection
 # -----------------------------
 
-running_on_cloud = (
-    os.getenv("STREAMLIT_SHARING_MODE") == "1"
-    or
-    "STREAMLIT_RUNTIME" in os.environ
-)
+try:
+    running_on_cloud = st.runtime.exists()
+
+except Exception:
+    running_on_cloud = False
+
 
 
 # -----------------------------
@@ -55,34 +57,23 @@ load_dotenv(
 )
 
 
+
 # -----------------------------
 # Imports
 # -----------------------------
 
 from init_chromadb import initialize_chromadb
 
-from report_utils import (
-    generate_report,
-)
+from report_utils import generate_report
 
-from pdf_report import (
-    create_pdf_report
-)
+from pdf_report import create_pdf_report
 
+from retriever import retrieve_similar_stories
 
-from retriever import (
-    retrieve_similar_stories
-)
+from generator_groq import generate_test_cases_groq
 
+from jira_client import fetch_story_from_jira
 
-from generator_groq import (
-    generate_test_cases_groq
-)
-
-
-from jira_client import (
-    fetch_story_from_jira
-)
 
 
 # -----------------------------
@@ -100,7 +91,7 @@ load_database()
 
 
 # -----------------------------
-# Import Ollama Only Locally
+# Ollama Import Only Local
 # -----------------------------
 
 ollama_available = False
@@ -110,9 +101,7 @@ if not running_on_cloud:
 
     try:
 
-        from generator_ollama import (
-            generate_test_cases_ollama
-        )
+        from generator_ollama import generate_test_cases_ollama
 
         ollama_available = True
 
@@ -124,7 +113,7 @@ if not running_on_cloud:
 
 
 # -----------------------------
-# Page Setup
+# Page Config
 # -----------------------------
 
 st.set_page_config(
@@ -140,45 +129,11 @@ st.set_page_config(
 # -----------------------------
 
 if "story" not in st.session_state:
-
     st.session_state["story"] = ""
 
 
 if "acceptance" not in st.session_state:
-
     st.session_state["acceptance"] = ""
-
-
-
-# -----------------------------
-# CSS
-# -----------------------------
-
-st.markdown(
-"""
-<style>
-
-.title {
-
-font-size:42px;
-font-weight:700;
-text-align:center;
-
-}
-
-
-.subtitle {
-
-text-align:center;
-color:gray;
-font-size:18px;
-
-}
-
-</style>
-""",
-unsafe_allow_html=True
-)
 
 
 
@@ -188,14 +143,13 @@ unsafe_allow_html=True
 
 st.markdown(
 """
-<div class="title">
+<h1 style="text-align:center">
 🧪 AI Test Case Generator
-</div>
+</h1>
 
-<div class="subtitle">
+<p style="text-align:center;color:gray">
 RAG + LLM powered BDD Test Case Generation
-</div>
-
+</p>
 """,
 unsafe_allow_html=True
 )
@@ -209,9 +163,7 @@ unsafe_allow_html=True
 with st.sidebar:
 
 
-    st.header(
-        "⚙ Settings"
-    )
+    st.header("⚙ Settings")
 
 
     if running_on_cloud:
@@ -220,33 +172,31 @@ with st.sidebar:
         model = "Groq Cloud AI"
 
 
-        st.info(
-            "Running on Streamlit Cloud\n\nUsing Groq AI only"
+        st.success(
+            "☁ Streamlit Cloud\n\n"
+            "Using Groq Cloud AI only"
         )
 
 
     else:
 
 
-        available_models = [
+        models = [
             "Groq Cloud AI"
         ]
 
 
         if ollama_available:
 
-            available_models.insert(
+            models.insert(
                 0,
                 "Ollama Local AI"
             )
 
 
         model = st.radio(
-
             "Select AI Model",
-
-            available_models
-
+            models
         )
 
 
@@ -269,13 +219,10 @@ with st.sidebar:
         ],
 
         default=[
-
             "Functional",
             "Negative",
             "Edge Cases"
-
         ]
-
     )
 
 
@@ -285,11 +232,8 @@ with st.sidebar:
         "Similar Stories",
 
         1,
-
         6,
-
         3
-
     )
 
 
@@ -304,11 +248,8 @@ st.subheader(
 
 
 jira_issue_key = st.text_input(
-
     "Enter Jira Issue Key",
-
     placeholder="Example: KAN-6"
-
 )
 
 
@@ -316,43 +257,31 @@ jira_issue_key = st.text_input(
 if st.button("📥 Fetch from Jira"):
 
 
-    if jira_issue_key.strip():
+    try:
 
-        try:
-
-
-            jira_data = fetch_story_from_jira(
-
-                jira_issue_key.strip()
-
-            )
+        jira_data = fetch_story_from_jira(
+            jira_issue_key.strip()
+        )
 
 
-            st.session_state["story"] = jira_data["story"]
+        st.session_state["story"] = jira_data["story"]
 
-            st.session_state["acceptance"] = jira_data["acceptance"]
-
-
-            st.success(
-
-                f"{jira_issue_key} imported successfully!"
-
-            )
+        st.session_state["acceptance"] = jira_data["acceptance"]
 
 
-        except Exception as e:
+        st.success(
+            "Jira story imported successfully"
+        )
 
 
-            st.error(
+    except Exception as e:
 
-                f"Unable to fetch Jira story.\n\n{e}"
-
-            )
+        st.error(e)
 
 
 
 # -----------------------------
-# Input Area
+# Input
 # -----------------------------
 
 
@@ -363,14 +292,9 @@ col1, col2 = st.columns(2)
 with col1:
 
 
-    st.subheader(
-        "📝 User Story"
-    )
-
-
     story = st.text_area(
 
-        "Enter User Story",
+        "📝 User Story",
 
         value=st.session_state["story"],
 
@@ -383,14 +307,9 @@ with col1:
 with col2:
 
 
-    st.subheader(
-        "📋 Acceptance Criteria"
-    )
-
-
     acceptance = st.text_area(
 
-        "Enter Acceptance Criteria",
+        "📋 Acceptance Criteria",
 
         value=st.session_state["acceptance"],
 
@@ -407,3 +326,208 @@ generate = st.button(
     use_container_width=True
 
 )
+
+
+
+# -----------------------------
+# Generation
+# -----------------------------
+
+if generate:
+
+
+    if not story.strip():
+
+        st.error(
+            "Please enter user story"
+        )
+
+        st.stop()
+
+
+
+    criteria_list = [
+
+        x.strip()
+
+        for x in acceptance.splitlines()
+
+        if x.strip()
+
+    ]
+
+
+
+    with st.spinner(
+        "🔎 Searching similar stories..."
+    ):
+
+
+        similar = retrieve_similar_stories(
+
+            story,
+
+            top_k
+
+        )
+
+
+
+    st.subheader(
+        "🔎 Similar Stories"
+    )
+
+
+    for item in similar:
+
+        with st.expander(
+            item["title"]
+        ):
+
+            st.write(
+                item.get("story","")
+            )
+
+
+
+    with st.spinner(
+        "🤖 Generating test cases..."
+    ):
+
+
+        try:
+
+
+            if model == "Ollama Local AI" and ollama_available:
+
+
+                result = generate_test_cases_ollama(
+
+                    story,
+
+                    criteria_list,
+
+                    similar,
+
+                    test_types
+
+                )
+
+
+            else:
+
+
+                result = generate_test_cases_groq(
+
+                    story,
+
+                    criteria_list,
+
+                    similar,
+
+                    test_types
+
+                )
+
+
+
+        except Exception as e:
+
+            st.error(e)
+
+            st.stop()
+
+
+
+    st.success(
+        "Generated successfully"
+    )
+
+
+
+    st.subheader(
+        "🧪 Generated Gherkin"
+    )
+
+
+    st.code(
+        result,
+        language="gherkin"
+    )
+
+
+
+    # -----------------------------
+    # Evaluation
+    # -----------------------------
+
+    report = generate_report(
+
+        story_title="User Story",
+
+        manual_test_cases=criteria_list,
+
+        generated_test_cases=result
+
+    )
+
+
+    st.subheader(
+        "📊 Evaluation"
+    )
+
+
+    c1,c2,c3 = st.columns(3)
+
+
+    c1.metric(
+        "Manual Cases",
+        report["manual_test_cases"]
+    )
+
+
+    c2.metric(
+        "Generated",
+        report["generated_scenarios"]
+    )
+
+
+    c3.metric(
+        "Coverage",
+        f'{report["coverage_percent"]}%'
+    )
+
+
+
+    pdf = tempfile.NamedTemporaryFile(
+
+        delete=False,
+
+        suffix=".pdf"
+
+    )
+
+
+    create_pdf_report(
+
+        evaluation_result=report,
+
+        output_path=pdf.name
+
+    )
+
+
+    with open(pdf.name,"rb") as f:
+
+
+        st.download_button(
+
+            "📄 Download PDF Report",
+
+            f,
+
+            file_name="evaluation_report.pdf",
+
+            mime="application/pdf"
+
+        )
