@@ -11,14 +11,11 @@ Streamlit Cloud:
 """
 
 
-
-
-
-
 import os
 import sys
 import tempfile
 from datetime import datetime
+
 
 # -----------------------------
 # Path setup
@@ -29,19 +26,25 @@ sys.path.insert(
     os.path.dirname(__file__)
 )
 
+
 import streamlit as st
 from dotenv import load_dotenv
 
-from init_chromadb import initialize_chromadb
-from report_utils import generate_report, report_to_json
-from pdf_report import create_pdf_report
+
+# -----------------------------
+# Environment Detection
+# -----------------------------
+
+running_on_cloud = (
+    os.getenv("STREAMLIT_SHARING_MODE") == "1"
+    or
+    "STREAMLIT_RUNTIME" in os.environ
+)
 
 
-# Initialize ChromaDB
-initialize_chromadb()
-
-
-# Load environment variables
+# -----------------------------
+# Load Environment Variables
+# -----------------------------
 
 load_dotenv(
     os.path.join(
@@ -56,28 +59,67 @@ load_dotenv(
 # Imports
 # -----------------------------
 
-from retriever import retrieve_similar_stories
+from init_chromadb import initialize_chromadb
+
+from report_utils import (
+    generate_report,
+)
+
+from pdf_report import (
+    create_pdf_report
+)
+
+
+from retriever import (
+    retrieve_similar_stories
+)
+
 
 from generator_groq import (
     generate_test_cases_groq
 )
 
-from jira_client import fetch_story_from_jira
+
+from jira_client import (
+    fetch_story_from_jira
+)
 
 
-# Import Ollama safely
+# -----------------------------
+# Initialize ChromaDB
+# -----------------------------
 
-try:
+@st.cache_resource
+def load_database():
 
-    from generator_ollama import (
-        generate_test_cases_ollama
-    )
+    initialize_chromadb()
 
-    ollama_available = True
 
-except Exception:
+load_database()
 
-    ollama_available = False
+
+
+# -----------------------------
+# Import Ollama Only Locally
+# -----------------------------
+
+ollama_available = False
+
+
+if not running_on_cloud:
+
+    try:
+
+        from generator_ollama import (
+            generate_test_cases_ollama
+        )
+
+        ollama_available = True
+
+
+    except Exception:
+
+        ollama_available = False
 
 
 
@@ -90,15 +132,22 @@ st.set_page_config(
     page_icon="🧪",
     layout="wide"
 )
+
+
+
 # -----------------------------
-# Session State Initialization
+# Session State
 # -----------------------------
 
 if "story" not in st.session_state:
+
     st.session_state["story"] = ""
 
+
 if "acceptance" not in st.session_state:
+
     st.session_state["acceptance"] = ""
+
 
 
 # -----------------------------
@@ -126,7 +175,6 @@ font-size:18px;
 
 }
 
-
 </style>
 """,
 unsafe_allow_html=True
@@ -137,7 +185,6 @@ unsafe_allow_html=True
 # -----------------------------
 # Header
 # -----------------------------
-
 
 st.markdown(
 """
@@ -156,21 +203,8 @@ unsafe_allow_html=True
 
 
 # -----------------------------
-# Detect Environment
-# -----------------------------
-
-
-running_on_cloud = (
-    os.getenv("STREAMLIT_SHARING_MODE") is not None
-    or
-    os.getenv("IS_STREAMLIT_CLOUD") is not None
-)
-
-
-# -----------------------------
 # Sidebar
 # -----------------------------
-
 
 with st.sidebar:
 
@@ -185,8 +219,9 @@ with st.sidebar:
 
         model = "Groq Cloud AI"
 
+
         st.info(
-            "Running on Streamlit Cloud\n\nUsing Groq AI"
+            "Running on Streamlit Cloud\n\nUsing Groq AI only"
         )
 
 
@@ -219,6 +254,7 @@ with st.sidebar:
     st.divider()
 
 
+
     test_types = st.multiselect(
 
         "Test Coverage",
@@ -243,6 +279,7 @@ with st.sidebar:
     )
 
 
+
     top_k = st.slider(
 
         "Similar Stories",
@@ -258,43 +295,66 @@ with st.sidebar:
 
 
 # -----------------------------
-# Input
-# -----------------------------
-
-# -----------------------------
 # Jira Import
 # -----------------------------
 
-st.subheader("📥 Import User Story from Jira")
-
-jira_issue_key = st.text_input(
-    "Enter Jira Issue Key",
-    placeholder="Example: KAN-6"
+st.subheader(
+    "📥 Import User Story from Jira"
 )
 
 
+jira_issue_key = st.text_input(
+
+    "Enter Jira Issue Key",
+
+    placeholder="Example: KAN-6"
+
+)
+
+
+
 if st.button("📥 Fetch from Jira"):
+
 
     if jira_issue_key.strip():
 
         try:
 
+
             jira_data = fetch_story_from_jira(
+
                 jira_issue_key.strip()
+
             )
+
 
             st.session_state["story"] = jira_data["story"]
+
             st.session_state["acceptance"] = jira_data["acceptance"]
 
+
             st.success(
+
                 f"{jira_issue_key} imported successfully!"
+
             )
+
 
         except Exception as e:
 
+
             st.error(
+
                 f"Unable to fetch Jira story.\n\n{e}"
+
             )
+
+
+
+# -----------------------------
+# Input Area
+# -----------------------------
+
 
 col1, col2 = st.columns(2)
 
@@ -302,21 +362,19 @@ col1, col2 = st.columns(2)
 
 with col1:
 
+
     st.subheader(
         "📝 User Story"
     )
 
-    story = st.text_area(
-        "Enter User Story",
-        value=st.session_state.get("story", ""),
-        height=220,
-        placeholder="""
-Example:
 
-As a user,
-I want to login using email and password
-so that I can access my account.
-"""
+    story = st.text_area(
+
+        "Enter User Story",
+
+        value=st.session_state["story"],
+
+        height=220
 
     )
 
@@ -324,31 +382,21 @@ so that I can access my account.
 
 with col2:
 
+
     st.subheader(
         "📋 Acceptance Criteria"
     )
 
+
     acceptance = st.text_area(
+
         "Enter Acceptance Criteria",
-        value=st.session_state.get(
-            "acceptance",
-            ""
-        ),
-        height=220,
-        placeholder="""
-Example:
 
-User can login successfully.
+        value=st.session_state["acceptance"],
 
-Invalid password shows error.
+        height=220
 
-Account locks after failed attempts.
-"""
     )
-
-
-
-st.write("")
 
 
 
@@ -359,285 +407,3 @@ generate = st.button(
     use_container_width=True
 
 )
-
-
-
-# -----------------------------
-# Generate
-# -----------------------------
-
-
-if generate:
-
-
-    if not story.strip():
-
-
-        st.error(
-            "Please enter a user story"
-        )
-
-
-        st.stop()
-
-
-
-    criteria_list = [
-
-        x.strip()
-
-        for x in acceptance.splitlines()
-
-        if x.strip()
-
-    ]
-
-
-
-    # Retrieval
-
-    with st.spinner(
-        "🔎 Finding similar stories..."
-    ):
-
-
-        similar = retrieve_similar_stories(
-
-            story,
-
-            top_k=top_k
-
-        )
-
-
-
-    st.subheader(
-        "🔎 Similar Stories"
-    )
-
-
-    for item in similar:
-
-
-        with st.expander(
-
-            item["title"]
-
-        ):
-
-
-            st.write(
-
-                item.get(
-                    "story",
-                    ""
-                )
-
-            )
-
-
-            st.write(
-
-                "Similarity:",
-
-                round(
-
-                    item[
-                        "similarity_score"
-                    ],
-
-                    2
-
-                )
-
-            )
-
-
-
-    # Generation
-
-
-    with st.spinner(
-
-        "🤖 Generating test cases..."
-
-    ):
-
-
-        try:
-
-
-            if model == "Ollama Local AI":
-
-
-                result = generate_test_cases_ollama(
-
-                    story,
-
-                    criteria_list,
-
-                    similar,
-
-                    test_types
-
-                )
-
-
-            else:
-
-
-                result = generate_test_cases_groq(
-
-                    story,
-
-                    criteria_list,
-
-                    similar,
-
-                    test_types
-
-                )
-
-
-
-            st.success(
-
-                "Generated successfully"
-
-            )
-
-
-            st.subheader(
-
-                "🧪 Generated Gherkin"
-
-            )
-
-
-            st.code(
-
-                result,
-
-                language="gherkin"
-
-            )
-
-
-        except Exception as e:
-
-
-            st.error(
-
-                f"Generation failed: {e}"
-
-            )
-
-
-            st.stop()
-
-    # -----------------------------
-    # Evaluation Report
-    # -----------------------------
-
-    report = generate_report(
-
-        story_title="User Story",
-
-        manual_test_cases=criteria_list,
-
-        generated_test_cases=result
-
-    )
-
-
-    st.subheader(
-        "📊 Evaluation Summary"
-    )
-
-
-    col1, col2, col3 = st.columns(3)
-
-
-    with col1:
-
-        st.metric(
-            "Manual Test Cases",
-            report["manual_test_cases"]
-        )
-
-
-    with col2:
-
-        st.metric(
-            "Generated Scenarios",
-            report["generated_scenarios"]
-        )
-
-
-    with col3:
-
-        st.metric(
-            "Coverage",
-            f'{report["coverage_percent"]}%'
-        )
-                
-
-        pdf_file = tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix=".pdf"
-    )
-
-    create_pdf_report(
-        evaluation_result=report,
-        output_path=pdf_file.name
-    )
-
-    with open(pdf_file.name, "rb") as f:
-        st.download_button(
-            label="📄 Download Evaluation Report (PDF)",
-            data=f.read(),
-            file_name="evaluation_report.pdf",
-            mime="application/pdf"
-        )
-
-    # -----------------------------
-    # Save Feature File
-    # -----------------------------
-
-
-    output_dir = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "output"
-    )
-
-
-    os.makedirs(
-        output_dir,
-        exist_ok=True
-    )
-
-
-    timestamp = datetime.now().strftime(
-        "%Y%m%d_%H%M%S"
-    )
-
-
-    filename = f"test_cases_{timestamp}.feature"
-
-
-    filepath = os.path.join(
-        output_dir,
-        filename
-    )
-
-
-    with open(filepath, "w") as file:
-
-        file.write(result)
-
-pdf_file = tempfile.NamedTemporaryFile(
-    delete=False,
-    suffix=".pdf"
-)
-
