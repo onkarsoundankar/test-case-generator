@@ -1,11 +1,13 @@
-# Python
+# Python environment
 venv/
+.venv/
+
+# Python cache
 __pycache__/
 *.pyc
 
 # Environment variables
 .env
-src/.env
 
 # Mac files
 .DS_Store
@@ -17,6 +19,3 @@ output/
 
 # Streamlit
 .streamlit/
-.DS_Store
-__pycache__/
-*.pyc

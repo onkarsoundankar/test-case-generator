@@ -1,6 +1,5 @@
 """
 AI Test Case Generator
-----------------------
 
 Local:
 - Ollama Local AI
@@ -10,11 +9,12 @@ Streamlit Cloud:
 - Groq Cloud AI only
 """
 
-
 import os
 import sys
 import tempfile
-from datetime import datetime
+
+import streamlit as st
+from dotenv import load_dotenv
 
 
 # -----------------------------
@@ -27,26 +27,24 @@ sys.path.insert(
 )
 
 
-import streamlit as st
-from dotenv import load_dotenv
-
-
-
 # -----------------------------
-# Streamlit Cloud Detection
+# Detect Streamlit Cloud
 # -----------------------------
 
 running_on_cloud = False
 
 try:
-    running_on_cloud = st.secrets.get("STREAMLIT_CLOUD", "false") == "true"
+    running_on_cloud = (
+        st.secrets.get("STREAMSTREAMLIT_CLOUD", "false")
+        == "true"
+    )
 
 except Exception:
     running_on_cloud = False
 
 
 # -----------------------------
-# Load Environment Variables
+# Environment
 # -----------------------------
 
 load_dotenv(
@@ -58,41 +56,19 @@ load_dotenv(
 )
 
 
-
 # -----------------------------
 # Imports
 # -----------------------------
 
-from init_chromadb import initialize_chromadb
-
 from report_utils import generate_report
-
 from pdf_report import create_pdf_report
-
 from retriever import retrieve_similar_stories
-
-from chain import generate_test_cases
-
+from generator_groq import generate_test_cases_groq
 from jira_client import fetch_story_from_jira
 
 
-
 # -----------------------------
-# Initialize ChromaDB
-# -----------------------------
-
-@st.cache_resource
-def load_database():
-
-    initialize_chromadb()
-
-
-load_database()
-
-
-
-# -----------------------------
-# Ollama Import Only Local
+# Local Ollama
 # -----------------------------
 
 ollama_available = False
@@ -105,7 +81,6 @@ if not running_on_cloud:
         from generator_ollama import generate_test_cases_ollama
 
         ollama_available = True
-
 
     except Exception:
 
@@ -130,11 +105,11 @@ st.set_page_config(
 # -----------------------------
 
 if "story" not in st.session_state:
-    st.session_state["story"] = ""
+    st.session_state.story = ""
 
 
 if "acceptance" not in st.session_state:
-    st.session_state["acceptance"] = ""
+    st.session_state.acceptance = ""
 
 
 
@@ -143,16 +118,16 @@ if "acceptance" not in st.session_state:
 # -----------------------------
 
 st.markdown(
-"""
-<h1 style="text-align:center">
-🧪 AI Test Case Generator
-</h1>
+    """
+    <h1 style="text-align:center">
+    🧪 AI Test Case Generator
+    </h1>
 
-<p style="text-align:center;color:gray">
-RAG + LLM powered BDD Test Case Generation
-</p>
-""",
-unsafe_allow_html=True
+    <p style="text-align:center;color:gray">
+    RAG + LLM powered BDD Test Case Generation
+    </p>
+    """,
+    unsafe_allow_html=True
 )
 
 
@@ -163,29 +138,23 @@ unsafe_allow_html=True
 
 with st.sidebar:
 
-
     st.header("⚙ Settings")
 
 
     if running_on_cloud:
 
-
         model = "Groq Cloud AI"
 
-
         st.success(
-            "☁ Streamlit Cloud\n\n"
-            "Using Groq Cloud AI only"
+            "☁ Streamlit Cloud\n\nUsing Groq Cloud AI only"
         )
 
 
     else:
 
-
         models = [
             "Groq Cloud AI"
         ]
-
 
         if ollama_available:
 
@@ -201,15 +170,11 @@ with st.sidebar:
         )
 
 
-
     st.divider()
 
 
-
     test_types = st.multiselect(
-
         "Test Coverage",
-
         [
             "Functional",
             "Negative",
@@ -218,7 +183,6 @@ with st.sidebar:
             "Smoke",
             "Security"
         ],
-
         default=[
             "Functional",
             "Negative",
@@ -227,11 +191,8 @@ with st.sidebar:
     )
 
 
-
     top_k = st.slider(
-
         "Similar Stories",
-
         1,
         6,
         3
@@ -240,7 +201,7 @@ with st.sidebar:
 
 
 # -----------------------------
-# Jira Import
+# Jira
 # -----------------------------
 
 st.subheader(
@@ -257,7 +218,6 @@ jira_issue_key = st.text_input(
 
 if st.button("📥 Fetch from Jira"):
 
-
     try:
 
         jira_data = fetch_story_from_jira(
@@ -265,9 +225,9 @@ if st.button("📥 Fetch from Jira"):
         )
 
 
-        st.session_state["story"] = jira_data["story"]
+        st.session_state.story = jira_data["story"]
 
-        st.session_state["acceptance"] = jira_data["acceptance"]
+        st.session_state.acceptance = jira_data["acceptance"]
 
 
         st.success(
@@ -285,53 +245,37 @@ if st.button("📥 Fetch from Jira"):
 # Input
 # -----------------------------
 
-
 col1, col2 = st.columns(2)
-
 
 
 with col1:
 
-
     story = st.text_area(
-
         "📝 User Story",
-
-        value=st.session_state["story"],
-
+        value=st.session_state.story,
         height=220
-
     )
-
 
 
 with col2:
 
-
     acceptance = st.text_area(
-
         "📋 Acceptance Criteria",
-
-        value=st.session_state["acceptance"],
-
+        value=st.session_state.acceptance,
         height=220
-
     )
 
 
 
 generate = st.button(
-
     "🚀 Generate Test Cases",
-
     use_container_width=True
-
 )
 
 
 
 # -----------------------------
-# Generation
+# Generate
 # -----------------------------
 
 if generate:
@@ -363,13 +307,9 @@ if generate:
         "🔎 Searching similar stories..."
     ):
 
-
         similar = retrieve_similar_stories(
-
             story,
-
             top_k
-
         )
 
 
@@ -386,7 +326,7 @@ if generate:
         ):
 
             st.write(
-                item.get("story","")
+                item.get("story", "")
             )
 
 
@@ -395,7 +335,6 @@ if generate:
         "🤖 Generating test cases..."
     ):
 
-
         try:
 
 
@@ -403,28 +342,23 @@ if generate:
 
 
                 result = generate_test_cases_ollama(
-
                     story,
-
                     criteria_list,
-
                     similar,
-
                     test_types
-
                 )
 
 
             else:
 
 
-                result = generate_test_cases(
-    story=story,
-    acceptance_criteria="\n".join(criteria_list),
-    test_types=", ".join(test_types),
-    similar_stories=similar,
-    top_k=top_k,
-)
+                result = generate_test_cases_groq(
+                    story,
+                    criteria_list,
+                    similar,
+                    test_types
+                )
+
 
         except Exception as e:
 
@@ -437,7 +371,6 @@ if generate:
     st.success(
         "Generated successfully"
     )
-
 
 
     st.subheader(
@@ -472,7 +405,7 @@ if generate:
     )
 
 
-    c1,c2,c3 = st.columns(3)
+    c1, c2, c3 = st.columns(3)
 
 
     c1.metric(
@@ -495,34 +428,22 @@ if generate:
 
 
     pdf = tempfile.NamedTemporaryFile(
-
         delete=False,
-
         suffix=".pdf"
-
     )
 
 
     create_pdf_report(
-
         evaluation_result=report,
-
         output_path=pdf.name
-
     )
 
 
-    with open(pdf.name,"rb") as f:
-
+    with open(pdf.name, "rb") as f:
 
         st.download_button(
-
             "📄 Download PDF Report",
-
             f,
-
             file_name="evaluation_report.pdf",
-
             mime="application/pdf"
-
         )
