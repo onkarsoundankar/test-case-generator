@@ -71,7 +71,7 @@ from pdf_report import create_pdf_report
 
 from retriever import retrieve_similar_stories
 
-from generator_groq import generate_test_cases_groq
+from chain import generate_test_cases
 
 from jira_client import fetch_story_from_jira
 
@@ -418,19 +418,13 @@ if generate:
             else:
 
 
-                result = generate_test_cases_groq(
-
-                    story,
-
-                    criteria_list,
-
-                    similar,
-
-                    test_types
-
-                )
-
-
+                result = generate_test_cases(
+    story=story,
+    acceptance_criteria="\n".join(criteria_list),
+    test_types=", ".join(test_types),
+    similar_stories=similar,
+    top_k=top_k,
+)
 
         except Exception as e:
 
