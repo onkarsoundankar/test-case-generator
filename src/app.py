@@ -13,8 +13,18 @@ import os
 import sys
 import tempfile
 
+
 import streamlit as st
 from dotenv import load_dotenv
+
+from init_chromadb import initialize_chromadb
+st.set_page_config(...)
+@st.cache_resource
+def load_database():
+    initialize_chromadb()
+
+
+load_database()
 
 
 # -----------------------------
