@@ -14,19 +14,6 @@ import sys
 import tempfile
 
 
-import streamlit as st
-from dotenv import load_dotenv
-
-from init_chromadb import initialize_chromadb
-st.set_page_config(...)
-@st.cache_resource
-def load_database():
-    initialize_chromadb()
-
-
-load_database()
-
-
 # -----------------------------
 # Path setup
 # -----------------------------
@@ -37,6 +24,22 @@ sys.path.insert(
 )
 
 
+import streamlit as st
+from dotenv import load_dotenv
+
+
+# -----------------------------
+# Page Config
+# MUST be first Streamlit command
+# -----------------------------
+
+st.set_page_config(
+    page_title="AI Test Case Generator",
+    page_icon="🧪",
+    layout="wide"
+)
+
+
 # -----------------------------
 # Detect Streamlit Cloud
 # -----------------------------
@@ -44,13 +47,19 @@ sys.path.insert(
 running_on_cloud = False
 
 try:
+
     running_on_cloud = (
-        st.secrets.get("STREAMSTREAMLIT_CLOUD", "false")
+        st.secrets.get(
+            "STREAMLIT_CLOUD",
+            "false"
+        )
         == "true"
     )
 
 except Exception:
+
     running_on_cloud = False
+
 
 
 # -----------------------------
@@ -66,15 +75,37 @@ load_dotenv(
 )
 
 
+
 # -----------------------------
 # Imports
 # -----------------------------
 
+from init_chromadb import initialize_chromadb
+
 from report_utils import generate_report
+
 from pdf_report import create_pdf_report
+
 from retriever import retrieve_similar_stories
+
 from generator_groq import generate_test_cases_groq
+
 from jira_client import fetch_story_from_jira
+
+
+
+# -----------------------------
+# Initialize ChromaDB
+# -----------------------------
+
+@st.cache_resource
+def load_database():
+
+    initialize_chromadb()
+
+
+load_database()
+
 
 
 # -----------------------------
@@ -92,21 +123,10 @@ if not running_on_cloud:
 
         ollama_available = True
 
+
     except Exception:
 
         ollama_available = False
-
-
-
-# -----------------------------
-# Page Config
-# -----------------------------
-
-st.set_page_config(
-    page_title="AI Test Case Generator",
-    page_icon="🧪",
-    layout="wide"
-)
 
 
 
@@ -115,10 +135,12 @@ st.set_page_config(
 # -----------------------------
 
 if "story" not in st.session_state:
+
     st.session_state.story = ""
 
 
 if "acceptance" not in st.session_state:
+
     st.session_state.acceptance = ""
 
 
@@ -156,7 +178,8 @@ with st.sidebar:
         model = "Groq Cloud AI"
 
         st.success(
-            "☁ Streamlit Cloud\n\nUsing Groq Cloud AI only"
+            "☁ Streamlit Cloud\n\n"
+            "Using Groq Cloud AI only"
         )
 
 
@@ -165,6 +188,7 @@ with st.sidebar:
         models = [
             "Groq Cloud AI"
         ]
+
 
         if ollama_available:
 
@@ -211,7 +235,7 @@ with st.sidebar:
 
 
 # -----------------------------
-# Jira
+# Jira Import
 # -----------------------------
 
 st.subheader(
@@ -258,6 +282,7 @@ if st.button("📥 Fetch from Jira"):
 col1, col2 = st.columns(2)
 
 
+
 with col1:
 
     story = st.text_area(
@@ -265,6 +290,7 @@ with col1:
         value=st.session_state.story,
         height=220
     )
+
 
 
 with col2:
@@ -317,6 +343,7 @@ if generate:
         "🔎 Searching similar stories..."
     ):
 
+
         similar = retrieve_similar_stories(
             story,
             top_k
@@ -336,7 +363,10 @@ if generate:
         ):
 
             st.write(
-                item.get("story", "")
+                item.get(
+                    "story",
+                    ""
+                )
             )
 
 
@@ -348,7 +378,10 @@ if generate:
         try:
 
 
-            if model == "Ollama Local AI" and ollama_available:
+            if (
+                model == "Ollama Local AI"
+                and ollama_available
+            ):
 
 
                 result = generate_test_cases_ollama(
@@ -410,6 +443,7 @@ if generate:
     )
 
 
+
     st.subheader(
         "📊 Evaluation"
     )
@@ -443,17 +477,24 @@ if generate:
     )
 
 
+
     create_pdf_report(
         evaluation_result=report,
         output_path=pdf.name
     )
 
 
+
     with open(pdf.name, "rb") as f:
 
         st.download_button(
+
             "📄 Download PDF Report",
+
             f,
+
             file_name="evaluation_report.pdf",
+
             mime="application/pdf"
+
         )
