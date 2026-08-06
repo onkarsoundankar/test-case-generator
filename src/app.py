@@ -88,11 +88,9 @@ from pdf_report import create_pdf_report
 
 from retriever import retrieve_similar_stories
 
-from generator_groq import generate_test_cases_groq
-
 from jira_client import fetch_story_from_jira
 
-
+from langchain_generator import generate_test_cases
 
 # -----------------------------
 # Initialize ChromaDB
@@ -114,19 +112,9 @@ load_database()
 
 ollama_available = False
 
-
 if not running_on_cloud:
 
-    try:
-
-        from generator_ollama import generate_test_cases_ollama
-
-        ollama_available = True
-
-
-    except Exception:
-
-        ollama_available = False
+    ollama_available = True
 
 
 
@@ -377,30 +365,29 @@ if generate:
 
         try:
 
+            if model == "Ollama Local AI":
 
-            if (
-                model == "Ollama Local AI"
-                and ollama_available
-            ):
-
-
-                result = generate_test_cases_ollama(
-                    story,
-                    criteria_list,
-                    similar,
-                    test_types
-                )
-
+                model_type = "ollama"
 
             else:
 
+                model_type = "groq"
 
-                result = generate_test_cases_groq(
-                    story,
-                    criteria_list,
-                    similar,
-                    test_types
-                )
+
+
+            result = generate_test_cases(
+
+                story,
+
+                "\n".join(criteria_list),
+
+                similar,
+
+                test_types,
+
+                model_type
+
+            )
 
 
         except Exception as e:
@@ -408,14 +395,7 @@ if generate:
             st.error(e)
 
             st.stop()
-
-
-
-    st.success(
-        "Generated successfully"
-    )
-
-
+            
     st.subheader(
         "🧪 Generated Gherkin"
     )
