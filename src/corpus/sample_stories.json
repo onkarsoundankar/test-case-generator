@@ -4,30 +4,27 @@
     "title": "User login with email and password",
     "story": "As a registered user, I want to log in using my email and password so that I can access my account.",
     "acceptance_criteria": [
-     "Scenario: Successful login with valid credentials\n  Given a registered user with valid credentials\n  When the user enters the correct email and password\n  And clicks the login button\n  Then the user is redirected to the dashboard",
-
-    "Scenario: Login fails with incorrect password\n  Given a registered user\n  When the user enters a valid email and an incorrect password\n  Then an error message \"Invalid email or password\" is displayed",
-
-    "Scenario: Login fails with incorrect email\n  Given a registered user\n  When the user enters an invalid email and a valid password\n  Then an error message \"Invalid email or password\" is displayed",
-
-    "Scenario: Login fails with invalid email and password\n  Given a registered user\n  When the user enters an invalid email and an invalid password\n  Then an error message \"Invalid email or password\" is displayed",
-
-    "Scenario: Login with blank email\n  Given the login page is displayed\n  When the user leaves the email field blank and enters a valid password\n  Then a validation message for the email field is displayed",
-
-    "Scenario: Login with blank password\n  Given the login page is displayed\n  When the user enters a valid email and leaves the password blank\n  Then a validation message for the password field is displayed",
-
-    "Scenario: Login with blank email and password\n  Given the login page is displayed\n  When the user leaves both fields blank\n  Then validation messages are displayed for both fields",
-
-    "Scenario: Account locks after five failed attempts\n  Given a registered user\n  When the user enters invalid credentials five consecutive times\n  Then the account is locked\n  And the user is informed that the account is locked",
-
-    "Scenario: Login attempt after account is locked\n  Given the user's account is locked\n  When the user enters valid credentials\n  Then login is denied\n  And an account locked message is displayed",
-
-    "Scenario: Password field masks entered characters\n  Given the login page is displayed\n  When the user types a password\n  Then the password characters are masked",
-
-    "Scenario: SQL injection attempt in email field\n  Given the login page is displayed\n  When the user enters \"' OR '1'='1\" as the email\n  And enters any password\n  Then login is denied\n  And the application safely rejects the malicious input",
-
-    "Scenario: Cross-site scripting attempt in email field\n  Given the login page is displayed\n  When the user enters \"<script>alert('XSS')</script>\" in the email field\n  Then the application sanitizes the input\n  And login is denied"
-  ],
+      "Scenario: Successful login with valid credentials\n  Given a registered user with valid credentials\n  When the user enters the correct email and password\n  And clicks the login button\n  Then the user is redirected to the dashboard",
+      "Scenario: Login fails with incorrect password\n  Given a registered user\n  When the user enters a valid email and an incorrect password\n  Then an error message \"Invalid email or password\" is displayed",
+      "Scenario: Login fails with incorrect email\n  Given a registered user\n  When the user enters an invalid email and a valid password\n  Then an error message \"Invalid email or password\" is displayed",
+      "Scenario: Login fails with invalid email and password\n  Given a registered user\n  When the user enters an invalid email and an invalid password\n  Then an error message \"Invalid email or password\" is displayed",
+      "Scenario: Login with blank email\n  Given the login page is displayed\n  When the user leaves the email field blank and enters a valid password\n  Then a validation message for the email field is displayed",
+      "Scenario: Login with blank password\n  Given the login page is displayed\n  When the user enters a valid email and leaves the password blank\n  Then a validation message for the password field is displayed",
+      "Scenario: Login with blank email and password\n  Given the login page is displayed\n  When the user leaves both fields blank\n  Then validation messages are displayed for both fields",
+      "Scenario: Account locks after five failed attempts\n  Given a registered user\n  When the user enters invalid credentials five consecutive times\n  Then the account is locked\n  And the user is informed that the account is locked",
+      "Scenario: Login attempt after account is locked\n  Given the user's account is locked\n  When the user enters valid credentials\n  Then login is denied\n  And an account locked message is displayed",
+      "Scenario: Password field masks entered characters\n  Given the login page is displayed\n  When the user types a password\n  Then the password characters are masked",
+      "Scenario: SQL injection attempt in email field\n  Given the login page is displayed\n  When the user enters \"' OR '1'='1\" as the email\n  And enters any password\n  Then login is denied\n  And the application safely rejects the malicious input",
+      "Scenario: Cross-site scripting attempt in email field\n  Given the login page is displayed\n  When the user enters \"<script>alert('XSS')</script>\" in the email field\n  Then the application sanitizes the input\n  And login is denied",
+      "Scenario: Login with uppercase email address\n  Given a user registered with email \"user@example.com\"\n  When the user enters \"USER@EXAMPLE.COM\" and correct password\n  Then login is successful and email is treated case-insensitively",
+      "Scenario: Login with trailing space in email\n  Given a user registered with email \"user@example.com\"\n  When the user enters \"user@example.com \" and correct password\n  Then the trailing space is trimmed and login succeeds",
+      "Scenario: Login with leading space in password\n  Given a user with password \"SecurePass123\"\n  When the user enters \" SecurePass123\"\n  Then login fails due to password mismatch",
+      "Scenario: Remember Me option keeps user logged in\n  Given the user is on login page\n  When the user checks \"Remember Me\" and logs in\n  Then session remains active after browser is closed and reopened",
+      "Scenario: Unchecked Remember Me terminates session on browser close\n  Given the user is on login page\n  When the user unchecks \"Remember Me\" and logs in\n  Then session terminates when the browser tab is closed",
+      "Scenario: Password reveal toggle icon functionality\n  Given the password field contains masked text\n  When the user clicks the toggle eye icon\n  Then the password becomes visible in plain text",
+      "Scenario: Login rate limiting after multiple rapid requests\n  Given the login API is called 20 times in 10 seconds from same IP\n  When another attempt is made\n  Then HTTP status 429 Too Many Requests is returned",
+      "Scenario: Concurrent session handling\n  Given a user is logged in on Browser A\n  When the user logs in from Browser B\n  Then the session on Browser A is terminated or handled per security policy"
+    ],
     "test_cases": [
       "Scenario: Successful login with valid credentials\n  Given a registered user with valid credentials\n  When the user enters the correct email and password\n  And clicks the login button\n  Then the user is redirected to the dashboard",
       "Scenario: Login fails with incorrect password\n  Given a registered user\n  When the user enters a valid email and an incorrect password\n  Then an error message \"Invalid email or password\" is displayed",
@@ -39,10 +36,26 @@
     "title": "Password reset via email",
     "story": "As a user who forgot my password, I want to reset it via an emailed link so that I can regain access to my account.",
     "acceptance_criteria": [
-      "User can request a reset link via email",
-      "Reset link expires after 30 minutes",
-      "New password must meet complexity rules",
-      "User is notified after successful reset"
+      "Scenario: Successful password reset request\n  Given a user with a registered email\n  When the user requests a password reset\n  Then a reset link is sent to their email",
+      "Scenario: Expired reset link is rejected\n  Given a user has an expired password reset link\n  When the user clicks the link\n  Then an error message indicating the link has expired is shown",
+      "Scenario: New password fails complexity rules\n  Given a user is on the reset password page\n  When the user submits a password shorter than 8 characters\n  Then an error is shown indicating password requirements were not met",
+      "Scenario: Reset request for non-existent email\n  Given an unregistered email address\n  When the user submits the email on password reset page\n  Then a generic confirmation message is displayed to prevent email enumeration",
+      "Scenario: Reset password link single-use enforcement\n  Given a user successfully resets password using a token\n  When the user clicks the same link again\n  Then an error message \"Token already used\" is displayed",
+      "Scenario: Password reset link invalidated on new request\n  Given a reset token was previously emailed to user\n  When the user requests a second reset token\n  Then the first token is invalidated and only the second works",
+      "Scenario: Password complexity validation - missing uppercase\n  Given user is on reset page\n  When user enters \"lowercase123!\"\n  Then an error message requiring at least one uppercase letter is displayed",
+      "Scenario: Password complexity validation - missing number\n  Given user is on reset page\n  When user enters \"NoNumbersHere!\"\n  Then an error message requiring at least one numeric digit is displayed",
+      "Scenario: Password complexity validation - missing special character\n  Given user is on reset page\n  When user enters \"NoSpecialChar123\"\n  Then an error message requiring at least one special character is displayed",
+      "Scenario: Password reset matching confirmation password\n  Given user enters a valid new password\n  When confirmation password does not match new password\n  Then an error message \"Passwords do not match\" is shown",
+      "Scenario: Password reset using previous password\n  Given user enters a valid new password that matches current password\n  When submitted\n  Then system rejects with message \"New password cannot be same as old password\"",
+      "Scenario: Password reset token tamper test\n  Given a valid reset URL\n  When user modifies the URL token parameter\n  Then system displays \"Invalid or corrupted reset token\"",
+      "Scenario: Successful password reset clears locked state\n  Given an account locked due to failed login attempts\n  When user successfully resets password via email link\n  Then account is unlocked and user can log in with new password",
+      "Scenario: Password reset confirmation email sent\n  Given user successfully completes password reset\n  When the change is saved\n  Then a confirmation email notifying password change is sent",
+      "Scenario: Password reset rate limit\n  Given user requested 5 reset emails within 5 minutes\n  When requesting a 6th email\n  Then system blocks request with rate limit warning",
+      "Scenario: Password reset link click after user password already changed elsewhere\n  Given user requested a reset link\n  And changed password via account settings before clicking link\n  When clicking the reset link\n  Then token is invalid",
+      "Scenario: XSS attack attempt in new password field\n  Given user inputs script payload in password field\n  When submitted\n  Then input is sanitized/hashed safely without executing script",
+      "Scenario: Blank new password submission\n  Given user leaves password field empty\n  When submit is clicked\n  Then validation message \"Password is required\" appears",
+      "Scenario: Password reset page access without token\n  Given user attempts to access `/reset-password` without token parameter\n  When page loads\n  Then user is redirected to login page",
+      "Scenario: Password reset email timeout check\n  Given user requests password reset\n  When email delivery system processes request\n  Then reset email is delivered within 30 seconds"
     ],
     "test_cases": [
       "Scenario: Successful password reset request\n  Given a user with a registered email\n  When the user requests a password reset\n  Then a reset link is sent to their email",
@@ -55,10 +68,26 @@
     "title": "Add item to shopping cart",
     "story": "As a shopper, I want to add products to my cart so that I can purchase multiple items at once.",
     "acceptance_criteria": [
-      "User can add an in-stock item to the cart",
-      "Cart quantity updates in real time",
-      "Out-of-stock items cannot be added",
-      "Cart persists across sessions for logged-in users"
+      "Scenario: Add in-stock item to cart\n  Given a product is in stock\n  When the user clicks \"Add to Cart\"\n  Then the item appears in the cart with quantity 1",
+      "Scenario: Attempt to add out-of-stock item\n  Given a product is out of stock\n  When the user views the product page\n  Then the \"Add to Cart\" button is disabled",
+      "Scenario: Cart persists after logout and login\n  Given a logged-in user has items in their cart\n  When the user logs out and logs back in\n  Then the cart still contains the previously added items",
+      "Scenario: Increment item quantity in cart\n  Given an item is already in the cart with quantity 1\n  When user clicks \"Add to Cart\" again on product page\n  Then cart quantity for that item updates to 2",
+      "Scenario: Exceed maximum inventory limit when adding to cart\n  Given an item has 3 units remaining in stock\n  And user already has 3 units in cart\n  When user attempts to add 1 more unit\n  Then system displays \"Maximum available quantity already in cart\"",
+      "Scenario: Add guest cart to logged-in account (Cart Merge)\n  Given an anonymous guest user adds Item A to cart\n  When guest logs into an existing account with Item B in cart\n  Then cart merges to contain both Item A and Item B",
+      "Scenario: Add item with variants (size and color)\n  Given a product with Size M and Red selected\n  When user clicks \"Add to Cart\"\n  Then cart displays the specific Red - Size M variant",
+      "Scenario: Add item without selecting required variant\n  Given a product requiring size selection\n  When user clicks \"Add to Cart\" without selecting size\n  Then validation message \"Please select a size\" is shown",
+      "Scenario: Real-time cart count badge update\n  Given cart header icon displays badge count 2\n  When user adds 1 item to cart\n  Then cart badge count updates immediately to 3",
+      "Scenario: Add item while product price updates concurrently\n  Given product is displayed at $20\n  When admin updates price to $25 and user adds to cart\n  Then cart captures updated price $25 with notification",
+      "Scenario: Add item with quantity input field\n  Given user inputs quantity 5 on product page\n  When user clicks \"Add to Cart\"\n  Then item added to cart with quantity 5",
+      "Scenario: Add item with negative quantity input\n  Given user inputs quantity -1 on product page\n  When user clicks \"Add to Cart\"\n  Then system resets quantity to 1 or displays error",
+      "Scenario: Add item with non-numeric quantity input\n  Given user types \"abc\" in quantity input field\n  When field loses focus\n  Then value defaults back to 1",
+      "Scenario: Add digital download product to cart\n  Given a digital downloadable item\n  When user adds item to cart\n  Then item is added with max quantity fixed to 1",
+      "Scenario: Add bundled product to cart\n  Given a bundle product containing 3 items\n  When user adds bundle to cart\n  Then bundle appears as single line item with included sub-items",
+      "Scenario: Add item when inventory becomes depleted concurrently\n  Given item has 1 unit left\n  When User A and User B click \"Add to Cart\" simultaneously\n  Then first request succeeds and second receives out of stock notification",
+      "Scenario: Mini-cart drawer confirmation display\n  Given user is on category listing page\n  When user clicks \"Quick Add\"\n  Then mini-cart drawer slides open displaying added item details",
+      "Scenario: Add item exceeding max cart limit quantity (e.g. 99)\n  Given cart quantity for an item is 95\n  When user attempts to add 10 more\n  Then system caps quantity at 99 and displays warning",
+      "Scenario: Add restricted item based on country location\n  Given user location is set to Country X\n  And product is restricted in Country X\n  When user views product\n  Then \"Add to Cart\" button is replaced with restriction notice",
+      "Scenario: Session expiration for guest cart\n  Given guest user added items 30 days ago\n  When user returns after cookie expiration\n  Then guest cart is empty or reset"
     ],
     "test_cases": [
       "Scenario: Add in-stock item to cart\n  Given a product is in stock\n  When the user clicks \"Add to Cart\"\n  Then the item appears in the cart with quantity 1",
@@ -71,10 +100,26 @@
     "title": "Apply discount coupon at checkout",
     "story": "As a shopper, I want to apply a discount coupon at checkout so that I can get a reduced price on my order.",
     "acceptance_criteria": [
-      "Valid coupon reduces order total correctly",
-      "Expired or invalid coupons are rejected with a clear message",
-      "Only one coupon can be applied per order",
-      "Coupon discount is reflected in the order summary"
+      "Scenario: Apply valid coupon\n  Given a shopper has items in their cart\n  When they enter a valid, active coupon code\n  Then the order total is reduced by the coupon amount",
+      "Scenario: Reject expired coupon\n  Given a shopper enters an expired coupon code\n  When they apply the coupon\n  Then an error message \"Coupon expired\" is displayed and total remains unchanged",
+      "Scenario: Prevent stacking multiple coupons\n  Given a shopper has already applied one valid coupon\n  When they try to apply a second coupon\n  Then the system rejects the second coupon with a message explaining only one coupon is allowed",
+      "Scenario: Apply percentage-based coupon code\n  Given cart total is $100\n  When shopper applies code \"SAVE20\" (20% off)\n  Then discount of $20 is applied and new subtotal is $80",
+      "Scenario: Apply fixed amount coupon code\n  Given cart total is $50\n  When shopper applies code \"10OFF\"\n  Then discount of $10 is applied and new subtotal is $40",
+      "Scenario: Coupon code case insensitivity\n  Given valid coupon code \"SUMMER10\"\n  When shopper enters \"summer10\"\n  Then coupon is successfully accepted and applied",
+      "Scenario: Apply coupon below minimum purchase threshold\n  Given coupon requires $100 minimum spend\n  And cart total is $75\n  When shopper applies coupon\n  Then error \"Minimum order amount of $100 required for this coupon\" is shown",
+      "Scenario: Apply coupon restricted to specific category\n  Given coupon is valid only for Electronics\n  And cart contains only Apparel items\n  When shopper applies coupon\n  Then error \"Coupon not applicable to items in your cart\" is shown",
+      "Scenario: Coupon single-use per customer limit\n  Given shopper previously redeemed one-time code \"WELCOME10\"\n  When shopper attempts to enter \"WELCOME10\" on a second order\n  Then error \"Coupon has already been redeemed\" is shown",
+      "Scenario: Coupon usage limit exceeded globally\n  Given coupon has reached maximum global redemption limit\n  When shopper tries to apply code\n  Then error \"Coupon promotion limit reached\" is displayed",
+      "Scenario: Remove applied coupon code\n  Given shopper has applied valid coupon \"DISCOUNT15\"\n  When shopper clicks \"Remove Coupon\" button\n  Then coupon is detached and cart total recalculates to original price",
+      "Scenario: Apply coupon with whitespace in input\n  Given valid coupon \"FALL2026\"\n  When shopper enters \" FALL2026 \"\n  Then code is trimmed and successfully applied",
+      "Scenario: Apply invalid random coupon string\n  Given non-existent coupon \"XYZ12345\"\n  When shopper attempts application\n  Then error \"Invalid promo code\" is displayed",
+      "Scenario: Apply coupon when cart modified below minimum requirement\n  Given coupon requiring $50 minimum was applied to $60 cart\n  When shopper removes an item reducing subtotal to $30\n  Then coupon is automatically removed with notification message",
+      "Scenario: Discount total exceeds order subtotal\n  Given fixed $50 coupon applied to $30 order\n  When applied\n  Then subtotal becomes $0 and remaining balance is not negative",
+      "Scenario: Free shipping coupon code application\n  Given shipping fee is $9.99\n  When shopper applies free shipping coupon \"FREESHIP\"\n  Then shipping cost updates to $0.00",
+      "Scenario: Coupon application order with tax calculation\n  Given subtotal $100, coupon $20 off, tax rate 10%\n  When coupon is applied\n  Then tax is calculated on discounted subtotal ($80 * 10% = $8)",
+      "Scenario: Apply coupon code with special characters\n  Given coupon code is \"BLACK-FRIDAY!\"\n  When entered correctly by shopper\n  Then coupon is accepted and applied",
+      "Scenario: Coupon expiration during checkout session\n  Given coupon expires at 12:00 PM\n  And shopper enters code at 12:01 PM\n  Then coupon is rejected as expired",
+      "Scenario: Empty coupon code field submission\n  Given coupon input field is empty\n  When shopper clicks \"Apply\"\n  Then error message \"Please enter a coupon code\" is shown"
     ],
     "test_cases": [
       "Scenario: Apply valid coupon\n  Given a shopper has items in their cart\n  When they enter a valid, active coupon code\n  Then the order total is reduced by the coupon amount",
@@ -87,10 +132,26 @@
     "title": "Upload profile picture",
     "story": "As a user, I want to upload a profile picture so that my account feels personalized.",
     "acceptance_criteria": [
-      "Supports JPG and PNG formats",
-      "Max file size is 5MB",
-      "Image is resized/cropped to a square thumbnail",
-      "User sees a preview before saving"
+      "Scenario: Successful profile picture upload\n  Given a user selects a valid JPG image under 5MB\n  When they upload the image\n  Then the image is saved and displayed as their profile picture",
+      "Scenario: Reject unsupported file format\n  Given a user selects a .gif file\n  When they attempt to upload it\n  Then an error message indicating unsupported format is shown",
+      "Scenario: Reject file exceeding size limit\n  Given a user selects an image larger than 5MB\n  When they attempt to upload it\n  Then an error message indicating the file is too large is shown",
+      "Scenario: Successful PNG image upload\n  Given a user selects a 2MB PNG file\n  When uploaded\n  Then image is processed and displayed correctly",
+      "Scenario: Upload non-image file with image extension renamed\n  Given a user renames executable file `script.exe` to `photo.jpg`\n  When user attempts to upload\n  Then file type verification fails and error \"Invalid image content\" is displayed",
+      "Scenario: Image cropping adjustment tool interaction\n  Given a non-square 1920x1080 JPEG photo uploaded\n  When preview opens\n  Then user can drag crop area to select square thumbnail",
+      "Scenario: Cancel image upload preview\n  Given image preview modal is displayed\n  When user clicks \"Cancel\"\n  Then upload is aborted and original profile image is preserved",
+      "Scenario: Profile picture replacement\n  Given user already has an existing profile picture\n  When user uploads new valid picture\n  Then previous picture is deleted and replaced with new image",
+      "Scenario: Remove profile picture option\n  Given user has a custom profile picture\n  When user clicks \"Remove Picture\"\n  Then picture is deleted and default avatar is displayed",
+      "Scenario: Upload picture with exact 5MB boundary size\n  Given file size is exactly 5.00 MB\n  When user uploads\n  Then upload succeeds without error",
+      "Scenario: Upload picture slightly over 5MB limit (e.g. 5.01MB)\n  Given file size is 5.01 MB\n  When user uploads\n  Then error \"File size exceeds maximum 5MB limit\" is displayed",
+      "Scenario: Upload corrupted image file\n  Given image file header is damaged\n  When user selects file for upload\n  Then system displays error \"Corrupted file format\"",
+      "Scenario: Upload image with SVG format containing script (XSS prevention)\n  Given file is SVG with embedded `<script>` tag\n  When user attempts upload\n  Then system rejects file format or strips executable content",
+      "Scenario: Responsive thumbnail display verification\n  Given user uploads profile picture\n  When viewing on mobile screen and desktop screen\n  Then avatar renders properly formatted thumbnail in both views",
+      "Scenario: Drag and drop picture upload\n  Given user opens profile settings\n  When user drags image file into drag-and-drop dropzone\n  Then upload preview activates automatically",
+      "Scenario: Server error during picture processing\n  Given server storage goes offline during save\n  When user uploads photo\n  Then graceful error message \"Upload failed. Please try again later\" is displayed",
+      "Scenario: Profile picture update reflected in header navigation\n  Given user updates profile picture\n  When picture save succeeds\n  Then top-right navigation bar user avatar updates immediately without full page refresh",
+      "Scenario: Upload WEBP format image\n  Given system supports WEBP\n  When user uploads 1MB WEBP file\n  Then upload completes successfully",
+      "Scenario: Upload picture with EXIF metadata (Privacy check)\n  Given JPEG contains GPS location metadata\n  When processed by server\n  Then EXIF location data is stripped from output file",
+      "Scenario: Rapid consecutive upload attempts\n  Given user clicks upload button repeatedly while uploading\n  When processing\n  Then upload button is disabled during processing to prevent duplicates"
     ],
     "test_cases": [
       "Scenario: Successful profile picture upload\n  Given a user selects a valid JPG image under 5MB\n  When they upload the image\n  Then the image is saved and displayed as their profile picture",
@@ -103,15 +164,159 @@
     "title": "Search products by keyword",
     "story": "As a shopper, I want to search for products by keyword so that I can quickly find what I'm looking for.",
     "acceptance_criteria": [
-      "Search returns relevant results ranked by relevance",
-      "Search handles typos with suggestions",
-      "Empty search shows a helpful message",
-      "Results can be filtered by category and price"
+      "Scenario: Search returns relevant results\n  Given products exist matching a keyword\n  When the user searches for that keyword\n  Then matching products are displayed ranked by relevance",
+      "Scenario: Search with no results\n  Given no products match the search keyword\n  When the user searches\n  Then a message \"No products found\" is displayed with suggestions",
+      "Scenario: Filter search results by price range\n  Given a user has searched for a keyword\n  When they apply a price filter\n  Then only results within that price range are shown",
+      "Scenario: Typo tolerance in search keyword\n  Given user searches for \"lakptop\"\n  When search executes\n  Then system displays results for \"laptop\" with note \"Showing results for laptop\"",
+      "Scenario: Empty search term submission\n  Given user places cursor in search bar and presses Enter with blank query\n  When search runs\n  Then page remains on current view or prompts user to type query",
+      "Scenario: Search auto-complete suggestions dropdown\n  Given user types \"run\"\n  When key is pressed\n  Then auto-complete dropdown suggests \"running shoes\", \"running shorts\", \"runner\"",
+      "Scenario: Filter search results by category\n  Given search results for \"shoes\"\n  When user filters by category \"Athletic\"\n  Then list updates to show only athletic shoes",
+      "Scenario: Sort search results by Price Low to High\n  Given search results list\n  When user selects sort option \"Price: Low to High\"\n  Then products reorder starting from lowest price",
+      "Scenario: Sort search results by Customer Rating\n  Given search results list\n  When user selects sort option \"Highest Rated\"\n  Then products reorder by average review score descending",
+      "Scenario: Search with special characters\n  Given user inputs string \"T-shirt & Jeans @2026!\"\n  When search is executed\n  Then search handles characters cleanly without crashing",
+      "Scenario: Search by product SKU or model number\n  Given product with SKU \"SKU-98765\"\n  When user searches \"SKU-98765\"\n  Then product page or direct result is returned",
+      "Scenario: Search pagination navigation\n  Given search yields 50 results with 20 items per page\n  When user clicks Page 2\n  Then items 21 through 40 are displayed",
+      "Scenario: Clear search input button\n  Given search bar contains text \"wireless headphones\"\n  When user clicks the 'X' clear button inside search input\n  Then input field clears and focus remains in input",
+      "Scenario: Multiple applied filter combination\n  Given search results for \"jacket\"\n  When user selects Brand=\"North\" and Color=\"Black\"\n  Then only black jackets from North brand are displayed",
+      "Scenario: Clear all active filters\n  Given user has 3 active search filters\n  When user clicks \"Clear All Filters\"\n  Then all filters are reset and original full search list renders",
+      "Scenario: SQL injection attempt in search box\n  Given user enters `' UNION SELECT * FROM users--` in search\n  When search executes\n  Then application safely executes query returning 0 results",
+      "Scenario: XSS injection attempt in search box\n  Given user enters `<img src=x onerror=alert(1)>` in search\n  When search executes\n  Then system displays sanitized string safely as text",
+      "Scenario: Search term highlighting in results\n  Given user searches for \"leather boots\"\n  When results render\n  Then matching keyword terms \"leather\" and \"boots\" are highlighted in product titles",
+      "Scenario: Search response time under peak load\n  Given catalog contains 100,000 products\n  When user executes search\n  Then results load within 1.5 seconds",
+      "Scenario: Recent searches history display\n  Given logged-in user previously searched \"smartwatch\"\n  When user clicks search bar\n  Then recent search history displays \"smartwatch\""
     ],
     "test_cases": [
       "Scenario: Search returns relevant results\n  Given products exist matching a keyword\n  When the user searches for that keyword\n  Then matching products are displayed ranked by relevance",
       "Scenario: Search with no results\n  Given no products match the search keyword\n  When the user searches\n  Then a message \"No products found\" is displayed with suggestions",
       "Scenario: Filter search results by price range\n  Given a user has searched for a keyword\n  When they apply a price filter\n  Then only results within that price range are shown"
+    ]
+  },
+  {
+    "id": "STORY-107",
+    "title": "Apply promotional codes at checkout",
+    "story": "As a customer, I want to apply promotional codes at checkout, so that I can get discounts on my purchase.",
+    "acceptance_criteria": [
+      "Scenario: Promo code input field visible on checkout page\n  Given customer is on the checkout page\n  When viewing order summary section\n  Then a dedicated promo code input box and apply button are clearly displayed",
+      "Scenario: System validates code format and expiration\n  Given customer inputs promo code\n  When apply button is clicked\n  Then system validates code against date bounds and structural pattern",
+      "Scenario: Discount amount displays in order summary\n  Given a valid promo code is applied\n  When checkout summary renders\n  Then promo discount line item displays amount subtracted from subtotal",
+      "Scenario: Invalid code shows error message\n  Given customer enters non-existent promo code \"INVALID2026\"\n  When applied\n  Then explicit error message \"Promo code is invalid\" appears",
+      "Scenario: User can remove applied code\n  Given promo code is currently active on order\n  When customer clicks remove button\n  Then code is detached and order total updates back to original price",
+      "Scenario: Discount is applied before tax calculation\n  Given subtotal of $100 and 10% tax rate\n  When $20 discount code is applied\n  Then tax is calculated as 10% of $80 ($8.00) resulting in total $88.00",
+      "Scenario: Promo code expired error message\n  Given promo code expired yesterday\n  When customer submits code\n  Then system displays error \"This promo code expired on [Date]\"",
+      "Scenario: Promo code case insensitivity verification\n  Given code \"SAVE10NOW\"\n  When entered as \"save10now\"\n  Then system treats input as case-insensitive and applies discount",
+      "Scenario: Attempt to apply multiple promo codes\n  Given customer already applied promo code \"PROMO1\"\n  When attempting to enter promo code \"PROMO2\"\n  Then system prompts that only one promotional code can be active",
+      "Scenario: Minimum subtotal restriction not met\n  Given promo code requiring $50 minimum subtotal\n  And current cart subtotal is $30\n  When customer applies code\n  Then error \"Add $20.00 more to qualify for this promo code\" appears",
+      "Scenario: Promo code limited to specific user segment\n  Given VIP-only promo code\n  When standard non-VIP customer applies code\n  Then error \"This promo code is not applicable to your account\" appears",
+      "Scenario: Promo code trimmed for leading or trailing whitespace\n  Given code \"WINTER50\"\n  When customer enters \" WINTER50 \"\n  Then code is successfully validated and applied",
+      "Scenario: Promo code single-use limit enforcement\n  Given customer already used code \"ONETIME\"\n  When customer attempts to use \"ONETIME\" on new order\n  Then error \"You have already used this promo code\" appears",
+      "Scenario: Removal of items invalidating promo condition\n  Given promo code requiring 3 items in cart\n  When customer removes 1 item reducing total count to 2\n  Then promo code is automatically removed and message is shown",
+      "Scenario: Promo code applying free shipping\n  Given standard shipping rate is $5.00\n  When customer applies promo code \"FREESHIP2026\"\n  Then shipping charge updates to $0.00 in order breakdown",
+      "Scenario: Promo code maximum discount cap enforcement\n  Given 50% discount code with maximum cap of $100\n  When applied to $300 purchase\n  Then discount is capped at $100 instead of $150",
+      "Scenario: Copy-pasted promo code with hidden formatting characters\n  Given customer copy-pastes code with non-printable unicode\n  When code is submitted\n  Then input field sanitizes string and successfully processes code",
+      "Scenario: Promo code applied to excluded sale items\n  Given cart contains items tagged as \"Clearance - Non-eligible\"\n  When customer applies general promo code\n  Then discount applies only to eligible non-clearance items",
+      "Scenario: Currency matching for localized promo code\n  Given promo code valid only for USD currency\n  When customer checks out in EUR currency\n  Then error message regarding currency incompatibility is displayed",
+      "Scenario: Promo code real-time re-calculation on cart updates\n  Given 10% off promo code applied to $100 cart\n  When customer adds $50 item to cart during checkout\n  Then discount updates automatically from $10 to $15"
+    ],
+    "test_cases": [
+      "Scenario: Promo code input field visible on checkout page\n  Given customer is on the checkout page\n  When viewing order summary section\n  Then a dedicated promo code input box and apply button are clearly displayed",
+      "Scenario: System validates code format and expiration\n  Given customer inputs promo code\n  When apply button is clicked\n  Then system validates code against date bounds and structural pattern",
+      "Scenario: Discount amount displays in order summary\n  Given a valid promo code is applied\n  When checkout summary renders\n  Then promo discount line item displays amount subtracted from subtotal"
+    ]
+  },
+  {
+    "id": "STORY-108",
+    "title": "Save products to a wishlist",
+    "story": "As a shopper, I want to save products to a wishlist, so that I can purchase them later.",
+    "acceptance_criteria": [
+      "Scenario: Heart icon available on product cards\n  Given customer is browsing catalog or product pages\n  When product card renders\n  Then an interactive heart icon is clearly displayed on the card",
+      "Scenario: Wishlist accessible from user menu\n  Given customer is logged into their account\n  When user clicks account drop-down menu\n  Then \"My Wishlist\" link is accessible",
+      "Scenario: Wishlist displays saved products with current prices\n  Given customer has saved products to wishlist\n  When opening wishlist page\n  Then all saved items display with up-to-date live pricing",
+      "Scenario: User can move items from wishlist to cart\n  Given item exists in wishlist\n  When user clicks \"Move to Cart\"\n  Then item is transferred to active cart and removed from wishlist",
+      "Scenario: User can remove items from wishlist\n  Given item exists in wishlist\n  When user clicks delete/trash icon on item\n  Then item is removed from wishlist",
+      "Scenario: Email notification when wishlist item goes on sale\n  Given user has Item X in wishlist\n  When price of Item X drops\n  Then automated email notification is sent to user",
+      "Scenario: Toggle heart icon to add item to wishlist\n  Given heart icon is unselected (outlined)\n  When user clicks heart icon\n  Then heart icon fills color and item is added to wishlist",
+      "Scenario: Toggle heart icon to remove item from product card\n  Given heart icon is selected (filled)\n  When user clicks heart icon again\n  Then heart icon returns to outline state and item is removed",
+      "Scenario: Guest user clicks heart icon prompts login modal\n  Given an unauthenticated guest user\n  When guest clicks heart icon on product card\n  Then login/registration modal pops up",
+      "Scenario: Guest user added items persist after login\n  Given guest attempts to add item to wishlist and then completes login\n  When logged in\n  Then selected item is added to user's saved wishlist",
+      "Scenario: Duplicate item handling in wishlist\n  Given Item A is already in user's wishlist\n  When user attempts to add Item A again\n  Then system prevents duplicates and displays notification \"Item already in wishlist\"",
+      "Scenario: Out-of-stock badge on wishlist items\n  Given item in wishlist goes out of stock\n  When user views wishlist\n  Then item is clearly marked with \"Out of Stock\" badge and Move to Cart is disabled",
+      "Scenario: Empty wishlist state display\n  Given user has no saved items in wishlist\n  When user navigates to wishlist page\n  Then page displays empty state image with \"Explore Products\" CTA button",
+      "Scenario: Wishlist pagination or infinite scroll\n  Given user has 50 items in wishlist\n  When viewing wishlist page\n  Then items render cleanly with smooth pagination or lazy loading",
+      "Scenario: Share wishlist publicly via URL link\n  Given user configures wishlist setting as public\n  When user shares generated wishlist link\n  Then recipient can view saved items",
+      "Scenario: Private wishlist privacy setting\n  Given user sets wishlist to private\n  When non-owner attempts to access share URL\n  Then system displays 403 Access Denied",
+      "Scenario: Create multiple custom wishlists\n  Given user is on wishlist page\n  When user clicks \"Create New List\" and enters name \"Holiday Gifts\"\n  Then new categorized wishlist is created",
+      "Scenario: Move item between multiple wishlists\n  Given user has wishlists \"Default\" and \"Birthday\"\n  When user moves item from \"Default\" to \"Birthday\"\n  Then item location is updated accordingly",
+      "Scenario: Price drop indicator visual badge\n  Given price of wishlist item decreased from $100 to $80\n  When user opens wishlist\n  Then original price $100 is struck through with green $80 price badge",
+      "Scenario: Bulk move all available wishlist items to cart\n  Given wishlist contains 3 in-stock items\n  When user clicks \"Add All to Cart\"\n  Then all 3 items are added to active shopping cart"
+    ],
+    "test_cases": [
+      "Scenario: Heart icon available on product cards\n  Given customer is browsing catalog or product pages\n  When product card renders\n  Then an interactive heart icon is clearly displayed on the card",
+      "Scenario: Wishlist accessible from user menu\n  Given customer is logged into their account\n  When user clicks account drop-down menu\n  Then \"My Wishlist\" link is accessible",
+      "Scenario: Wishlist displays saved products with current prices\n  Given customer has saved products to wishlist\n  When opening wishlist page\n  Then all saved items display with up-to-date live pricing"
+    ]
+  },
+  {
+    "id": "STORY-109",
+    "title": "Seamless checkout experience",
+    "story": "As a customer, I want a seamless checkout experience, so that I can complete my purchase quickly.",
+    "acceptance_criteria": [
+      "Scenario: Checkout button visible on cart page\n  Given user has items in cart\n  When viewing cart page\n  Then prominent \"Proceed to Checkout\" button is visible",
+      "Scenario: Shipping address form accepts full address\n  Given user is on checkout shipping step\n  When user fills street address, city, state, zip, and country\n  Then form validates and saves shipping address",
+      "Scenario: Payment method selection (Credit card, PayPal, Apple Pay)\n  Given user is on payment step\n  When viewing options\n  Then Credit Card, PayPal, and Apple Pay radio choices are available",
+      "Scenario: Order summary shows before final confirmation\n  Given user filled shipping and payment details\n  When reaching final review step\n  Then full order summary with itemized prices, taxes, and shipping fee displays",
+      "Scenario: Confirmation email sent upon successful payment\n  Given payment processing succeeds\n  When order is placed\n  Then automated order confirmation email is dispatched to customer",
+      "Scenario: Order number displayed after completion\n  Given order placement is completed\n  When thank-you success page loads\n  Then unique order confirmation number is displayed",
+      "Scenario: Express Guest Checkout option\n  Given user is not logged in\n  When clicking checkout button\n  Then user is offered option to \"Checkout as Guest\" without password creation",
+      "Scenario: Validation error on incomplete shipping address\n  Given user leaves Zip/Postal code blank\n  When clicking Next\n  Then field highlights red with validation message \"Zip code is required\"",
+      "Scenario: Select saved shipping address for logged-in user\n  Given logged-in user has saved addresses\n  When opening shipping step\n  Then address selector allows choosing existing address with one click",
+      "Scenario: Credit card validation - invalid card number\n  Given user selects Credit Card payment\n  When entering non-Luhn compliant card number\n  Then error message \"Invalid credit card number\" appears",
+      "Scenario: Credit card validation - expired date\n  Given card expiry date entered is in the past\n  When payment submitted\n  Then error message \"Card has expired\" is displayed",
+      "Scenario: Credit card validation - invalid CVV length\n  Given user enters 2 digit CVV for Visa\n  When submitted\n  Then error message \"CVV must be 3 digits\" appears",
+      "Scenario: Redirect to PayPal sandbox/gateway\n  Given user selects PayPal payment method\n  When clicking \"Place Order\"\n  Then user is redirected securely to PayPal authorization portal",
+      "Scenario: Cancel PayPal payment redirect\n  Given user is on PayPal payment portal\n  When user clicks cancel and return\n  Then user is returned to checkout review page with message \"Payment canceled\"",
+      "Scenario: Apple Pay biometric authorization trigger\n  Given supported Apple Pay device\n  When user selects Apple Pay\n  Then native FaceID/TouchID prompt appears for payment authorization",
+      "Scenario: Billing address same as shipping address checkbox\n  Given shipping address is entered\n  When \"Billing address same as shipping\" is checked\n  Then billing address fields auto-populate and lock",
+      "Scenario: Uncheck billing address same as shipping\n  Given box is unchecked\n  When viewing billing section\n  Then separate input form for billing address renders",
+      "Scenario: Handle failed payment transaction gracefully\n  Given payment gateway returns decline response\n  When processing payment\n  Then user remains on checkout page with error \"Payment declined. Please try another card\"",
+      "Scenario: Inventory reservation during checkout lockout timeout\n  Given item inventory reserved during checkout\n  When user abandons session for 15 minutes\n  Then reserved stock releases back to main inventory",
+      "Scenario: Order confirmation page reload prevention\n  Given user is on post-checkout success confirmation page\n  When user refreshes page\n  Then order is not re-submitted and same receipt details display safely"
+    ],
+    "test_cases": [
+      "Scenario: Checkout button visible on cart page\n  Given user has items in cart\n  When viewing cart page\n  Then prominent \"Proceed to Checkout\" button is visible",
+      "Scenario: Shipping address form accepts full address\n  Given user is on checkout shipping step\n  When user fills street address, city, state, zip, and country\n  Then form validates and saves shipping address",
+      "Scenario: Payment method selection (Credit card, PayPal, Apple Pay)\n  Given user is on payment step\n  When viewing options\n  Then Credit Card, PayPal, and Apple Pay radio choices are available"
+    ]
+  },
+  {
+    "id": "STORY-110",
+    "title": "User registration and account creation",
+    "story": "As a new site visitor, I want to create an account so that I can save my information and track orders.",
+    "acceptance_criteria": [
+      "Scenario: Successful registration with valid data\n  Given new visitor on registration page\n  When entering valid full name, unique email, and strong password\n  And accepts Terms of Service\n  Then account is created and user is redirected to welcome dashboard",
+      "Scenario: Registration fails with already registered email\n  Given email \"existing@example.com\" is already registered\n  When new user attempts registration with \"existing@example.com\"\n  Then system displays error \"Email address is already in use\"",
+      "Scenario: Registration fails with weak password\n  Given user enters password \"12345\"\n  When submit is clicked\n  Then system displays error message detailing missing password complexity requirements",
+      "Scenario: Registration fails without accepting terms\n  Given user fills valid details\n  When leaving \"Terms and Conditions\" checkbox unchecked\n  Then submission fails with error \"You must accept terms and conditions\"",
+      "Scenario: Form submission with empty required fields\n  Given registration form displayed\n  When submit clicked with all fields blank\n  Then validation errors display under Name, Email, and Password fields",
+      "Scenario: Invalid email format registration attempt\n  Given user enters \"invalidemail@\"\n  When submitting form\n  Then error \"Please enter a valid email address\" is shown",
+      "Scenario: Verification email sent upon registration\n  Given registration succeeds\n  When account record is created\n  Then email verification message containing activation link is dispatched",
+      "Scenario: Click email verification link activates account\n  Given user receives activation link\n  When clicking link in browser\n  Then account status changes to verified and success message displays",
+      "Scenario: Expired verification token handling\n  Given email activation link expired after 24 hours\n  When user clicks link\n  Then error page displays option to \"Resend Verification Email\"",
+      "Scenario: Password and Confirm Password mismatch\n  Given user enters \"Password123!\" in password field\n  And \"Password456!\" in confirm password field\n  Then validation error \"Passwords do not match\" is shown",
+      "Scenario: Trim whitespace in registration name and email\n  Given user enters \" John Doe \" in full name field\n  When account is created\n  Then stored name is trimmed to \"John Doe\"",
+      "Scenario: Registration with maximum character length in fields\n  Given user enters 255 character string in name field\n  When submitted\n  Then system processes or truncates per maximum database limits without crash",
+      "Scenario: Registration CAPTCHA validation success\n  Given reCAPTCHA widget present on registration form\n  When user completes CAPTCHA successfully and submits\n  Then registration proceeds",
+      "Scenario: Registration CAPTCHA failure\n  Given reCAPTCHA failed or incomplete\n  When user clicks register\n  Then system displays \"Please complete the CAPTCHA verification\"",
+      "Scenario: Social registration via Google OAuth\n  Given user clicks \"Sign up with Google\"\n  When authenticating successfully on Google portal\n  Then system creates account linked to Google email",
+      "Scenario: Social registration via Facebook OAuth\n  Given user clicks \"Sign up with Facebook\"\n  When authorized\n  Then account created and user logged in",
+      "Scenario: Registration rate limit per IP\n  Given 10 registration attempts from same IP within 1 minute\n  When 11th request sent\n  Then system blocks request with rate limiting response",
+      "Scenario: Password field masking on registration form\n  Given user typing in password input field\n  When typing\n  Then characters are hidden as dots/asterisks with show password option",
+      "Scenario: Cross-site request forgery (CSRF) protection on registration\n  Given registration request sent without valid CSRF token\n  When processed by backend\n  Then server rejects request with status 403 Forbidden",
+      "Scenario: Auto login after successful registration\n  Given automatic login setting enabled\n  When user completes registration\n  Then session token is generated immediately without requiring separate login"
+    ],
+    "test_cases": [
+      "Scenario: Successful registration with valid data\n  Given new visitor on registration page\n  When entering valid full name, unique email, and strong password\n  And accepts Terms of Service\n  Then account is created and user is redirected to welcome dashboard",
+      "Scenario: Registration fails with already registered email\n  Given email \"existing@example.com\" is already registered\n  When new user attempts registration with \"existing@example.com\"\n  Then system displays error \"Email address is already in use\"",
+      "Scenario: Registration fails with weak password\n  Given user enters password \"12345\"\n  When submit is clicked\n  Then system displays error message detailing missing password complexity requirements"
     ]
   }
 ]
