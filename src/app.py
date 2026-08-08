@@ -196,19 +196,19 @@ with st.sidebar:
 
 
     test_types = st.multiselect(
-        "Test Coverage",
+        "Test Type",
         [
-            "Functional",
-            "Negative",
-            "Edge Cases",
-            "Regression",
-            "Smoke",
-            "Security"
+        "Functional",
+        "Edge",
+        "Negative",
+        "Smoke",
+        "Regression",
+        "Exploratory"
         ],
         default=[
             "Functional",
             "Negative",
-            "Edge Cases"
+            "Edge"
         ]
     )
 
